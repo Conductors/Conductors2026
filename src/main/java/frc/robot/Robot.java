@@ -152,7 +152,13 @@ public Robot() {
 
 
     }
+    boolean isInRange = false;
+    if(distToCamera < 2 && distToCamera > 1.5)    //just a test for the dist to hub 
+    {
+      isInRange = true;
+    }
 
+    SmartDashboard.putBoolean("Is In Range?", isInRange);
     SmartDashboard.putNumber("distToCamera", distToCamera);
     SmartDashboard.putNumber("Txnc", txnc);
     SmartDashboard.putNumber("closestAprilTag", closestAprilTagID);
@@ -265,19 +271,6 @@ public Robot() {
     m_swerve.drive(xSpeed, ySpeed, rot, isFieldRelative, getPeriod()); 
   
 
-    /*if (tagID != 0)
-    {
-      for(RawFiducial fiducial : fiducials)
-        if (fiducial.id == tagID) {
-          txToTurn = fiducial.txnc;
-        } else {
-          txToTurn = 0;
-        }
-      angleToTurn = -(txToTurn)*(Math.PI/180); 
-    
-      //SmartDashboard.putNumber("TXTesting", txToTurn);
-      //SmartDashboard.putNumber("angleToTurn", angleToTurn);
-      }*/
   }
 
   
@@ -300,7 +293,7 @@ public Robot() {
     // Grabs the choser Auto from Shuffleboard
     switch (m_autoSelected) {
       case "None":
-      temp = m_swerve.getPathPlannerCommand();
+      //temp = m_swerve.getPathPlannerCommand();
         break;
       case "Auto 1":
         temp = Commands.sequence(

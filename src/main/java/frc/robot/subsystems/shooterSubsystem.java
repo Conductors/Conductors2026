@@ -16,7 +16,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
 
 public class shooterSubsystem extends SubsystemBase {
 
@@ -32,7 +31,7 @@ public class shooterSubsystem extends SubsystemBase {
 
     private DutyCycleEncoder m_turnEncoder;
     private int turnEncoderPort = 5;
-    private static final double c_TurnEncoderOffset = 0;
+    //private static final double c_TurnEncoderOffset = 0;  //note that we can just use the raw angle?
 
     private static final double c_ShooterMaxSpeed = 1;
     private static final double c_TurnMinAngle = 0;
