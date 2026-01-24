@@ -4,8 +4,6 @@
 
 package frc.robot;
 
-import java.io.Serial;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -36,6 +34,7 @@ import frc.robot.commands.turnTowardsAprilPID;
 //import java.util.AbstractMap;
 //import java.util.HashMap;
 //import java.util.Map;
+import frc.robot.subsystems.shooterSubsystem;
 
 public class Robot extends TimedRobot {
   private final CommandXboxController m_controller = new CommandXboxController(0);
@@ -68,7 +67,7 @@ public class Robot extends TimedRobot {
 
   StructPublisher<Pose2d> publisher = NetworkTableInstance.getDefault().getStructTopic("MyPose", Pose2d.struct).publish();
 
-  //private HashMap<Integer, RawFiducial> aprilTags = new HashMap<Integer, RawFiducial>();
+  private final shooterSubsystem m_ShooterSubsystem = new shooterSubsystem();
   
   // Slew rate limiters to make joystick inputs more gentle; Passing in "3" means 1/3 sec from 0 to 1.
   private final SlewRateLimiter m_xspeedLimiter = new SlewRateLimiter(3);
@@ -110,6 +109,7 @@ public Robot() {
     m_AprilTagSelected.addOption("2","2");
     m_AprilTagSelected.addOption("3","3");
   
+    m_ShooterSubsystem.initDefaultCommand();
   }
 
   @Override
@@ -135,12 +135,7 @@ public Robot() {
     closestAprilTagID = 0;  //reset the closest tag ID each time
     double closestAprilTagArea = 0;
     for (RawFiducial fiducial : fiducials) {
-      /*if (!aprilTags.containsKey(fiducial.id))
-      {
-        aprilTags.put(fiducial.id, fiducial);
-      }else{
-        aprilTags.replace(fiducial.id, fiducial);
-      }*/
+
         id = fiducial.id;                    // Tag ID
         txnc = fiducial.txnc;             // X offset (no crosshair)
         tync = fiducial.tync;             // Y offset (no crosshair)
@@ -200,10 +195,11 @@ public Robot() {
     green.onTrue(turnTowardAprilTag(Constants.AprilTagConstants.leftTags)); 
     yellow.onTrue(turnTowardAprilTag(Constants.AprilTagConstants.frontTags)); 
     blue.onTrue(turnTowardAprilTag(Constants.AprilTagConstants.rightTags)); 
+
     //aButton.onTrue(turnTorwardAprilTag(m_AprilTagSelected.getSelected()));   //turn toward the closest AprilTag 
-  //turn toward the closest AprilTag 
+    //turn toward the closest AprilTag 
     bButton.onTrue(new driveSpinwaysPID(0, getPeriod(), m_swerve));
-  //bButton.onTrue(new setCranePosition(Constants.Position.keProcessor, m_AlgaeGrabber));
+    //bButton.onTrue(new setCranePosition(Constants.Position.keProcessor, m_AlgaeGrabber));
     //yButton.onTrue(new setCranePosition(Constants.Position.keReef3, m_AlgaeGrabber));
     //xButton.onTrue(new setCranePosition(Constants.Position.keReef2, m_AlgaeGrabber));
     
