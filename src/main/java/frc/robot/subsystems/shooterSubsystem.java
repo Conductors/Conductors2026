@@ -7,23 +7,25 @@ import com.revrobotics.spark.SparkLowLevel;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.motorDiagnostics;
 
 public class shooterSubsystem extends SubsystemBase {
-
-
 
     private SparkMax shooterMotorA;  
     private SparkMax shooterMotorB;
     private SparkMax turnMotor;
+
+    private motorDiagnostics shooterADiags;
+    private motorDiagnostics shooterBDiags;
     
     private int shooterMotorAPort   = 24;
     private int shooterMotorBPort   = 25;
@@ -37,8 +39,8 @@ public class shooterSubsystem extends SubsystemBase {
     private static final double c_TurnMinAngle = 0;
     private static final double c_TurnMaxAngle = 0;
     
-    private double m_ShooterMotorASpeed = 0;
-    private double m_ShooterMotorBSpeed = 0;
+    private double m_ShooterMotorASpeed = 1;
+    private double m_ShooterMotorBSpeed = 2;
     private double m_turnAngle = 0;
 
     private double m_desiredMotorASpeed = 0;
@@ -81,6 +83,10 @@ public class shooterSubsystem extends SubsystemBase {
         shooterMotorA = new SparkMax(shooterMotorAPort, SparkLowLevel.MotorType.kBrushless);
         shooterMotorB = new SparkMax(shooterMotorBPort, SparkLowLevel.MotorType.kBrushless);
 
+        shooterADiags = new motorDiagnostics(shooterMotorA, "Shooter A");
+        shooterBDiags = new motorDiagnostics(shooterMotorB, "Shooter B");
+
+
         turnMotor = new SparkMax(turnMotorPort, SparkLowLevel.MotorType.kBrushless);
         SparkMaxConfig tiltConfig = new SparkMaxConfig();
             tiltConfig.idleMode(IdleMode.kBrake);
@@ -97,7 +103,7 @@ public class shooterSubsystem extends SubsystemBase {
           new TrapezoidProfile.Constraints(
             Ks_shooterA,
             Kv_shooterA));
-        m_ShooterAPID.setTolerance(.05);
+        m_ShooterAPID.setTolerance(1);
 
         m_ShooterBPID =  new ProfiledPIDController(
           Kp_shooterB,
@@ -106,7 +112,7 @@ public class shooterSubsystem extends SubsystemBase {
           new TrapezoidProfile.Constraints(
             Ks_shooterB,
             Kv_shooterB));
-        m_ShooterBPID.setTolerance(.05);
+        m_ShooterBPID.setTolerance(1);
     
         m_turnMotorPID =  new ProfiledPIDController(
           Kp_turnMotor,
@@ -121,19 +127,18 @@ public class shooterSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-      m_ShooterMotorASpeed   = m_ShooterAEncoder.getVelocity();
-      m_ShooterMotorBSpeed   = m_ShooterBEncoder.getVelocity();
-      m_turnAngle = m_turnEncoder.get();
+        m_ShooterMotorASpeed   = m_ShooterAEncoder.getVelocity();
+        m_ShooterMotorBSpeed   = m_ShooterBEncoder.getVelocity();
+        m_turnAngle = m_turnEncoder.get();
 
-      shooterMotorA.set(MathUtil.clamp(m_ShooterAPID.calculate(m_ShooterMotorASpeed, m_desiredMotorASpeed),
+        shooterMotorA.set(MathUtil.clamp(m_ShooterAPID.calculate(m_ShooterMotorASpeed, m_desiredMotorASpeed),
                                         -c_maxShooterASpeed,
                                         c_maxShooterASpeed));    //need to check motor direction
-      shooterMotorB.set(MathUtil.clamp(m_ShooterBPID.calculate(m_desiredMotorBSpeed, m_desiredMotorBSpeed),
+        shooterMotorB.set(MathUtil.clamp(m_ShooterBPID.calculate(m_desiredMotorBSpeed, m_desiredMotorBSpeed),
                                         -c_maxShooterBSpeed,
                                         c_maxShooterBSpeed));
                                         
-    
-      turnMotor.set(-MathUtil.clamp(m_turnMotorPID.calculate(m_turnAngle, m_desiredAngle),
+        turnMotor.set(-MathUtil.clamp(m_turnMotorPID.calculate(m_turnAngle, m_desiredAngle),
                                         -c_maxTurnSpeed,
                                         c_maxTurnSpeed));
         
@@ -144,6 +149,9 @@ public class shooterSubsystem extends SubsystemBase {
 
         SmartDashboard.putNumber("Desired Turn Angle", m_desiredAngle);
         SmartDashboard.putNumber("Actual Turn Angle", m_turnAngle);
+
+        shooterADiags.publishMotorData();
+        shooterBDiags.publishMotorData();
         
     }
 
@@ -199,10 +207,15 @@ public class shooterSubsystem extends SubsystemBase {
 
     
     public void initDefaultCommand() {
-        // When Idle, set the speeds to zero
-        setDefaultCommand(Commands.sequence(
-            new InstantCommand(() -> setDesiredMotorASpeed(0)),
-            new InstantCommand(() -> setDesiredMotorBSpeed(0))));
+        // When Idle, set the speeds to zero            
+        Command initSequence = Commands.sequence(
+            new InstantCommand(() -> setDesiredMotorASpeed(3)),
+            new InstantCommand(() -> setDesiredMotorBSpeed(4)));
+        
+        initSequence.addRequirements(this);
+
+        setDefaultCommand(initSequence);
+            
     }
     
 }

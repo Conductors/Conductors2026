@@ -42,6 +42,7 @@ public class LEDSubsystem extends SubsystemBase {
     }
 
     public Command runInRange() {
+      System.out.println("LED Run In Range");
       return run(() -> LEDPattern.solid(Color.kLime).applyTo(m_buffer));
     }
   }

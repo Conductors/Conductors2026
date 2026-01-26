@@ -22,8 +22,6 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 
 public class SwerveModule {
   
-  
-
   private static final double kModuleMaxAngularVelocity = 20*Constants.kTurnMotorMaxAngSpeed;
   private static final double kModuleMaxAngularAcceleration =  80*Constants.kTurnMotorMaxAngSpeed*2;
 
