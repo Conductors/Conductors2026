@@ -243,6 +243,11 @@ public Robot() {
   }
 
   @Override
+  public void testPeriodic() {
+    m_swerve.publishToDashboard();    //publish the abs & adj. turn readings without the Drive function
+  }
+
+  @Override
   public void teleopPeriodic() {
     publishToDashboard();
     //m_swerve.publishToDashboard();
