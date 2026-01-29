@@ -29,6 +29,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.motorDiagnostics;
 
 /** Represents a swerve drive style drivetrain. */
 public class Drivetrain extends SubsystemBase {
@@ -47,6 +48,11 @@ public class Drivetrain extends SubsystemBase {
                                                     Constants.kBL_TurnEncoderChannel, Constants.kBL_TurnEncoderOffset);      
   private final SwerveModule m_backRight = new SwerveModule(Constants.kBR_DriveChannel, Constants.kBR_TurnChannel, 
                                                     Constants.kBR_TurnEncoderChannel, Constants.kBR_TurnEncoderOffset);      
+
+  private final motorDiagnostics fLMotorDiags = new motorDiagnostics(m_frontLeft.m_driveMotor, "FL Motor");
+  private final motorDiagnostics fRMotorDiags = new motorDiagnostics(m_frontRight.m_driveMotor, "FR Motor");
+  private final motorDiagnostics bLMotorDiags = new motorDiagnostics(m_backLeft.m_driveMotor, "BL Motor");
+  private final motorDiagnostics bRMotorDiags = new motorDiagnostics(m_backRight.m_driveMotor, "BR Motor");
 
   private RobotConfig mRobotconfig;
 
@@ -154,7 +160,6 @@ public class Drivetrain extends SubsystemBase {
     SmartDashboard.putNumber("BR_Desired_Angle", swerveModuleStates[3].angle.getRadians());
 
 
-
   }
 
   /** Updates the field relative position of the robot. */
@@ -256,6 +261,10 @@ public class Drivetrain extends SubsystemBase {
     SmartDashboard.putNumber("BL Position", m_backLeft.getPosition().distanceMeters);
     SmartDashboard.putNumber("BR Position", m_backRight.getPosition().distanceMeters);
 
+    SmartDashboard.putData("Front Left Drive Diags", fLMotorDiags);
+    SmartDashboard.putData("Front Right Drive Diags", fRMotorDiags);
+    SmartDashboard.putData("Back Left Drive Diags", bLMotorDiags);
+    SmartDashboard.putData("Back Right Drive Diags", bRMotorDiags);
     
   }
 

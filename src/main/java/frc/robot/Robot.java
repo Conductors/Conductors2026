@@ -4,8 +4,7 @@
 
 package frc.robot;
 
-import java.io.Serial;
-
+import java.util.function.BooleanSupplier;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -14,7 +13,6 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
-//import edu.wpi.first.wpilibj.LEDPattern;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -33,10 +31,8 @@ import frc.robot.commands.driveStraightPID;
 import frc.robot.commands.driveToPositionPID;
 import frc.robot.commands.turnTowardsAprilPID;
 import frc.robot.subsystems.Intake;
-//import frc.robot.subsystems.LEDSubsystem;
-//import java.util.AbstractMap;
-//import java.util.HashMap;
-//import java.util.Map;
+import frc.robot.subsystems.shooterSubsystem;
+import frc.robot.subsystems.LEDSubsystem;
 
 public class Robot extends TimedRobot {
   private final CommandXboxController m_controller = new CommandXboxController(0);
@@ -58,9 +54,13 @@ public class Robot extends TimedRobot {
   private Trigger green       = new JoystickButton(m_buttonBoard, 1);
   private Trigger yellow       = new JoystickButton(m_buttonBoard, 2);
   private Trigger blue       = new JoystickButton(m_buttonBoard, 3);
+
   
   private boolean isHighGear = false;
   private boolean isFieldRelative = false;
+  boolean isInRange = false;
+
+  private Trigger isInRangeTrigger = new Trigger(()-> isInRange);
   
   private final Drivetrain m_swerve = new Drivetrain();
   private final Field2d m_field = new Field2d();
@@ -76,12 +76,13 @@ public class Robot extends TimedRobot {
                                         Constants.intakeConstants.k_tiltEncoderPortA,
                                         Constants.intakeConstants.k_tiltEncoderPortB);
 
-  //private HashMap<Integer, RawFiducial> aprilTags = new HashMap<Integer, RawFiducial>();
+  private final shooterSubsystem m_ShooterSubsystem = new shooterSubsystem();
+  private final LEDSubsystem m_LedSubsystem = new LEDSubsystem();
   
   // Slew rate limiters to make joystick inputs more gentle; Passing in "3" means 1/3 sec from 0 to 1.
   private final SlewRateLimiter m_xspeedLimiter = new SlewRateLimiter(3);
   private final SlewRateLimiter m_yspeedLimiter = new SlewRateLimiter(3);
-  private final SlewRateLimiter m_rotLimiter = new SlewRateLimiter(3);
+  private final SlewRateLimiter m_rotLimiter    = new SlewRateLimiter(3);
 
   private Command m_autonomousCommand;
 
@@ -118,6 +119,7 @@ public Robot() {
     m_AprilTagSelected.addOption("2","2");
     m_AprilTagSelected.addOption("3","3");
   
+    m_ShooterSubsystem.initDefaultCommand();
   }
 
   @Override
@@ -137,18 +139,13 @@ public Robot() {
     
     publisher.set(m_swerve.m_odometry.getPoseMeters());
     
-
+    //isInRangeTrigger.whileTrue(m_LedSubsystem.runInRange());
 
     fiducials = LimelightHelpers.getRawFiducials("");
     closestAprilTagID = 0;  //reset the closest tag ID each time
     double closestAprilTagArea = 0;
     for (RawFiducial fiducial : fiducials) {
-      /*if (!aprilTags.containsKey(fiducial.id))
-      {
-        aprilTags.put(fiducial.id, fiducial);
-      }else{
-        aprilTags.replace(fiducial.id, fiducial);
-      }*/
+
         id = fiducial.id;                    // Tag ID
         txnc = fiducial.txnc;             // X offset (no crosshair)
         tync = fiducial.tync;             // Y offset (no crosshair)
@@ -165,10 +162,20 @@ public Robot() {
 
 
     }
+    
+    if( (distToCamera < Constants.AprilTagConstants.shootMaxRange[1]) && 
+        (distToCamera > Constants.AprilTagConstants.shootMaxRange[0]) )   //just a test for the dist to hub 
+    {
+      System.out.println("is in range");
+      isInRange = true;
+      m_LedSubsystem.runInRange();
+    }
 
+    SmartDashboard.putBoolean("Is In Range?", isInRange);
     SmartDashboard.putNumber("distToCamera", distToCamera);
     SmartDashboard.putNumber("Txnc", txnc);
     SmartDashboard.putNumber("closestAprilTag", closestAprilTagID);
+
     
   }
 
@@ -204,16 +211,14 @@ public Robot() {
     backButton.onTrue(shiftGears()); 
     startButton.onTrue(changeIsFieldRelative());
     
-    aButton.onTrue(turnTowardAprilTag(Constants.AprilTagConstants.leftTags)); 
     green.onTrue(turnTowardAprilTag(Constants.AprilTagConstants.leftTags)); 
     yellow.onTrue(turnTowardAprilTag(Constants.AprilTagConstants.frontTags)); 
     blue.onTrue(turnTowardAprilTag(Constants.AprilTagConstants.rightTags)); 
-    //aButton.onTrue(turnTorwardAprilTag(m_AprilTagSelected.getSelected()));   //turn toward the closest AprilTag 
-  //turn toward the closest AprilTag 
-    bButton.onTrue(new driveSpinwaysPID(0, getPeriod(), m_swerve));
-  //bButton.onTrue(new setCranePosition(Constants.Position.keProcessor, m_AlgaeGrabber));
-    //yButton.onTrue(new setCranePosition(Constants.Position.keReef3, m_AlgaeGrabber));
-    //xButton.onTrue(new setCranePosition(Constants.Position.keReef2, m_AlgaeGrabber));
+
+    aButton.onTrue(turnTowardAprilTag(Constants.AprilTagConstants.leftTags));     
+    bButton.onTrue(new driveSpinwaysPID(Math.PI/2, getPeriod(), m_swerve));
+    yButton.onTrue(new driveSpinwaysPID(-Math.PI/2, getPeriod(), m_swerve));
+    
     
     //lBTrigger.whileTrue(new setClawSpeed(0.5, m_AlgaeGrabber))
     //          .onFalse(new setClawSpeed(0, m_AlgaeGrabber));
@@ -230,6 +235,7 @@ public Robot() {
     //povRight.onTrue(new InstantCommand(() -> m_AlgaeGrabber.IncWristAngle()));
     //povLeft.onTrue(new InstantCommand(() -> m_AlgaeGrabber.DecWristAngle()));
     
+
    
   }
   
@@ -245,6 +251,11 @@ public Robot() {
   }
 
   @Override
+  public void testPeriodic() {
+    m_swerve.publishToDashboard();    //publish the abs & adj. turn readings without the Drive function
+  }
+
+  @Override
   public void teleopPeriodic() {
     publishToDashboard();
     //m_swerve.publishToDashboard();
@@ -255,8 +266,8 @@ public Robot() {
     m_field.setRobotPose(m_swerve.m_odometry.getPoseMeters());
  
     //Set the max speed constant to use high (regular) or low speed based on isHighGear
-    double l_MaxSpeed = isHighGear?Constants.kMaxRobotSpeed:Constants.kMaxRobotSpeedLowGear;
-    double l_MaxAngSpeed = isHighGear?Constants.kMaxRobotAngularSpeed:Constants.kMaxRobotAngularSpeedLowGear;
+    double l_MaxSpeed     = isHighGear?Constants.kMaxRobotSpeed       :Constants.kMaxRobotSpeedLowGear;
+    double l_MaxAngSpeed  = isHighGear?Constants.kMaxRobotAngularSpeed:Constants.kMaxRobotAngularSpeedLowGear;
     
     
     final var xSpeed =
@@ -274,22 +285,8 @@ public Robot() {
         * l_MaxAngSpeed;
     SmartDashboard.putNumber("rot", rot);
 
-    m_swerve.drive(xSpeed, ySpeed, rot, isFieldRelative, getPeriod()); 
-  
+    m_swerve.drive(xSpeed, ySpeed, rot, isFieldRelative, getPeriod());   
 
-    /*if (tagID != 0)
-    {
-      for(RawFiducial fiducial : fiducials)
-        if (fiducial.id == tagID) {
-          txToTurn = fiducial.txnc;
-        } else {
-          txToTurn = 0;
-        }
-      angleToTurn = -(txToTurn)*(Math.PI/180); 
-    
-      //SmartDashboard.putNumber("TXTesting", txToTurn);
-      //SmartDashboard.putNumber("angleToTurn", angleToTurn);
-      }*/
   }
 
   
@@ -312,11 +309,12 @@ public Robot() {
     // Grabs the choser Auto from Shuffleboard
     switch (m_autoSelected) {
       case "None":
-      temp = m_swerve.getPathPlannerCommand();
+      //temp = m_swerve.getPathPlannerCommand();
         break;
       case "Auto 1":
         temp = Commands.sequence(
           new InstantCommand(() -> m_swerve.resetOdometry(new Pose2d(0,0, new Rotation2d(0)))),
+          
           driveStraight(1));
         break;
       case "Auto 2":
