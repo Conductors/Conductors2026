@@ -69,12 +69,12 @@ public class Robot extends TimedRobot {
 
   StructPublisher<Pose2d> publisher = NetworkTableInstance.getDefault().getStructTopic("MyPose", Pose2d.struct).publish();
 
-  private intake m_intake = new intake(Constants.intakeConstants.k_intakeMotorPortA,
-                                        Constants.intakeConstants.k_intakeMotorPortB,
-                                        Constants.intakeConstants.k_tiltMotorPortA,
-                                        Constants.intakeConstants.k_tiltMotorPortB,
-                                        Constants.intakeConstants.k_tiltEncoderPortA,
-                                        Constants.intakeConstants.k_tiltEncoderPortB);
+  // private intake m_intake = new intake(Constants.intakeConstants.k_intakeMotorPortA,
+  //                                      Constants.intakeConstants.k_intakeMotorPortB,
+  //                                      Constants.intakeConstants.k_tiltMotorPortA,
+  //                                    Constants.intakeConstants.k_tiltMotorPortB,
+  //                                      Constants.intakeConstants.k_tiltEncoderPortA,
+  //                                      Constants.intakeConstants.k_tiltEncoderPortB);
 
   private final shooterSubsystem m_ShooterSubsystem = new shooterSubsystem();
   private final LEDSubsystem m_LedSubsystem = new LEDSubsystem();
@@ -120,6 +120,7 @@ public Robot() {
     m_AprilTagSelected.addOption("3","3");
   
     m_ShooterSubsystem.initDefaultCommand();
+    //m_intake.initDefaultCommand();
   }
 
   @Override
