@@ -10,7 +10,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
-public class Intake extends SubsystemBase{
+public class intake extends SubsystemBase{
     
   private SparkMax tiltMotorA;  
   private SparkMax tiltMotorB;
@@ -20,6 +20,11 @@ public class Intake extends SubsystemBase{
   private DutyCycleEncoder m_tiltEncoderA;
   private DutyCycleEncoder m_tiltEncoderB;
   
+  private double m_desiredIntakeSpeed = 0;
+  private double m_actualIntakeSpeed = 0;
+  private static double c_normalIntakeSpeed = 1000;
+  private static double c_maxIntakeSpeed = 5000;
+
   private double desiredTiltAngleA = Constants.intakeConstants.k_tiltAngleSetpointA[0];
   private double desiredTiltAngleB = Constants.intakeConstants.k_tiltAngleSetpointB[0];
   private double actualTiltAngleA = 0;
@@ -28,6 +33,7 @@ public class Intake extends SubsystemBase{
   private double TiltAngleOffsetB = 0;
   private double TiltAngleStep = 0.1;
   
+  private final ProfiledPIDController m_intakePID;
   private final ProfiledPIDController m_tiltPIDControllerA;
   private final ProfiledPIDController m_tiltPIDControllerB;
 
@@ -53,6 +59,16 @@ public class Intake extends SubsystemBase{
     m_tiltEncoderA.setDutyCycleRange(1.0/1025.0, 1024.0/1025.0);
     m_tiltEncoderB.setDutyCycleRange(1.0/1025.0, 1024.0/1025.0);
     
+    m_intakePID =
+      new ProfiledPIDController(
+          1,
+          0,
+          0,
+          new TrapezoidProfile.Constraints(
+              c_maxIntakeSpeed,
+              c_maxIntakeSpeed*c_maxIntakeSpeed));
+    m_intakePID.setTolerance(1);  //sets the tolerance for the PID controller, in meters
+
 
     m_tiltPIDControllerA =
       new ProfiledPIDController(
@@ -94,15 +110,14 @@ public class Intake extends SubsystemBase{
     SmartDashboard.putNumber("tiltMotorACurrent", tiltMotorA.getOutputCurrent());
     SmartDashboard.putNumber("tiltMotorBCurrent", tiltMotorB.getOutputCurrent());
     SmartDashboard.putNumber("TiltPID_ErrorA", m_tiltPIDControllerA.getPositionError());
-    SmartDashboard.putNumber("TiltPID_ErrorB", m_tiltPIDControllerB.getPositionError());
-
-    
+    SmartDashboard.putNumber("TiltPID_ErrorB", m_tiltPIDControllerB.getPositionError());    
 
     //craneMotor.set(-m_CranePIDController.calculate(actualCraneAngle, desiredCraneAngle));    //need to check motor direction
     //wristMotor.set(m_WristPIDController.calculate(actualWristAngle, desiredWristAngle));
+    
+    intakeMotorA.set(m_intakePID.calculate(m_actualIntakeSpeed, m_desiredIntakeSpeed));
+    intakeMotorB.set(m_intakePID.calculate(m_actualIntakeSpeed, m_desiredIntakeSpeed));
 
-    //clawMotorUpper.set(desiredClawSpeed);
-    //clawMotorLower.set(-desiredClawSpeed);
 
   }
 
@@ -114,5 +129,22 @@ public class Intake extends SubsystemBase{
     desiredTiltAngleB= angle + TiltAngleOffsetB;
   }
 
+
+    public void deploy() {
+     
+    }
+
+    public void retract() {
+      
+    }
+
+    public void setIntakeSpeed(double speed) {
+      m_desiredIntakeSpeed = speed;
+    }
+
+
+    public double getIntakeSpeed() {
+      return m_actualIntakeSpeed;
+    }
     
 }
