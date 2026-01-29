@@ -51,11 +51,11 @@ public class shooterSubsystem extends SubsystemBase {
     private double o_MotorBSpeedOffset = 0;
 
     private static final double c_maxShooterASpeed  = 1000;
+    private static final double c_minShooterASpeed  = 100;
     private static final double c_maxShooterBSpeed  = 1000;
     private static final double c_maxTurnSpeed      = 1000;
 
     private static final double c_speedOffsetIncrement = 5;
-
 
     private RelativeEncoder m_ShooterAEncoder;
     private RelativeEncoder m_ShooterBEncoder;
@@ -184,7 +184,7 @@ public class shooterSubsystem extends SubsystemBase {
 
     public double getActualTiltAngle() {
         return m_turnAngle;
-      }
+    }
       
 
     // Public functions to all D-Pad to adjust the offset of the Elevator Height
@@ -205,6 +205,19 @@ public class shooterSubsystem extends SubsystemBase {
         o_MotorBSpeedOffset = o_MotorBSpeedOffset - c_speedOffsetIncrement;
     }
 
+    /**
+     * 
+     * @param dist The distance from the camera, in meters
+     * @return The Shooter A Motor speeds (in rpm) appropriate for a given distance
+     */
+    public double calcSpeed(double dist) {
+        double setSpeed = c_minShooterASpeed;        //defaults to min speed
+
+        setSpeed = c_minShooterASpeed;      //Change this for different distances (calibration logic only)
+
+    
+        return setSpeed;
+    }
     
     public void initDefaultCommand() {
         // When Idle, set the speeds to zero            
