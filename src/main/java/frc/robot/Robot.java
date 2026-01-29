@@ -30,6 +30,7 @@ import frc.robot.commands.driveSpinwaysPID;
 import frc.robot.commands.driveStraightPID;
 import frc.robot.commands.driveToPositionPID;
 import frc.robot.commands.turnTowardsAprilPID;
+import frc.robot.subsystems.intake;
 import frc.robot.subsystems.shooterSubsystem;
 import frc.robot.subsystems.LEDSubsystem;
 
@@ -67,6 +68,13 @@ public class Robot extends TimedRobot {
   private RawFiducial[] fiducials;
 
   StructPublisher<Pose2d> publisher = NetworkTableInstance.getDefault().getStructTopic("MyPose", Pose2d.struct).publish();
+
+  private intake m_intake = new intake(Constants.intakeConstants.k_intakeMotorPortA,
+                                        Constants.intakeConstants.k_intakeMotorPortB,
+                                        Constants.intakeConstants.k_tiltMotorPortA,
+                                        Constants.intakeConstants.k_tiltMotorPortB,
+                                        Constants.intakeConstants.k_tiltEncoderPortA,
+                                        Constants.intakeConstants.k_tiltEncoderPortB);
 
   private final shooterSubsystem m_ShooterSubsystem = new shooterSubsystem();
   private final LEDSubsystem m_LedSubsystem = new LEDSubsystem();
