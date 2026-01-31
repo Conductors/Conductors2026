@@ -29,7 +29,7 @@ public class shooterSubsystem extends SubsystemBase {
     
     private int shooterMotorAPort   = 24;
     private int shooterMotorBPort   = 25;
-    private int turnMotorPort       = 26;
+    private int turnMotorPort       = 26;       //Not currently used... future
 
     private DutyCycleEncoder m_turnEncoder;
     private int turnEncoderPort = 5;
@@ -50,12 +50,12 @@ public class shooterSubsystem extends SubsystemBase {
     private double o_MotorASpeedOffset = 0;
     private double o_MotorBSpeedOffset = 0;
 
-    private static final double c_maxShooterASpeed  = 1000;
-    private static final double c_minShooterASpeed  = 100;
-    private static final double c_maxShooterBSpeed  = 1000;
-    private static final double c_maxTurnSpeed      = 1000;
+    private static final double c_maxShooterASpeed  = 1;
+    private static final double c_minShooterASpeed  = 0.1;
+    private static final double c_maxShooterBSpeed  = 1;
+    private static final double c_maxTurnSpeed      = 1;
 
-    private static final double c_speedOffsetIncrement = 5;
+    private static final double c_speedOffsetIncrement = .05;
 
     private RelativeEncoder m_ShooterAEncoder;
     private RelativeEncoder m_ShooterBEncoder;
@@ -63,17 +63,17 @@ public class shooterSubsystem extends SubsystemBase {
     private ProfiledPIDController m_ShooterAPID;
     private ProfiledPIDController m_ShooterBPID;
     private ProfiledPIDController m_turnMotorPID;
-        private static final double Kp_shooterA = 1;
+        private static final double Kp_shooterA = .1;
         private static final double Ki_shooterA = 0;
         private static final double Kd_shooterA = 0;
         private static final double Kv_shooterA = 0;
         private static final double Ks_shooterA = 0;
-        private static final double Kp_shooterB = 1;
+        private static final double Kp_shooterB = .1;
         private static final double Ki_shooterB = 0;
         private static final double Kd_shooterB = 0;
         private static final double Kv_shooterB = 0;
         private static final double Ks_shooterB = 0;
-        private static final double Kp_turnMotor = 1;
+        private static final double Kp_turnMotor = .1;
         private static final double Ki_turnMotor = 0;
         private static final double Kd_turnMotor = 0;
         private static final double Kv_turnMotor = 0;
@@ -143,6 +143,8 @@ public class shooterSubsystem extends SubsystemBase {
                                         c_maxTurnSpeed));
         
         //Publish Stuff to Dashboard
+        SmartDashboard.putNumber("Desired ShooterA Speed", m_desiredMotorASpeed);
+        SmartDashboard.putNumber("Desired ShooterB Speed", m_desiredMotorBSpeed);
         SmartDashboard.putNumber("Shooter A Speed", m_ShooterMotorASpeed);
         SmartDashboard.putNumber("Shooter B Speed", m_ShooterMotorBSpeed);
         SmartDashboard.putNumber("Turn Motor Speed", turnMotor.get());
@@ -222,8 +224,8 @@ public class shooterSubsystem extends SubsystemBase {
     public void initDefaultCommand() {
         // When Idle, set the speeds to zero            
         Command initSequence = Commands.sequence(
-            new InstantCommand(() -> setDesiredMotorASpeed(3)),
-            new InstantCommand(() -> setDesiredMotorBSpeed(4)));
+            new InstantCommand(() -> setDesiredMotorASpeed(0)),
+            new InstantCommand(() -> setDesiredMotorBSpeed(0)));
         
         initSequence.addRequirements(this);
 

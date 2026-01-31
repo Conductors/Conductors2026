@@ -1,16 +1,11 @@
 package frc.robot.subsystems;
 
-import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkLowLevel;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -20,27 +15,20 @@ import frc.motorDiagnostics;
 
 public class climbSubsystem extends SubsystemBase {
 
+    private static final int c_climbMotorAPort = 40;
+    private static final int c_climbMotorBPort = 41;
+
     private SparkMax climbMotorA;  
-    private SparkMax climbMotorB;
-  
+    private SparkMax climbMotorB;  
 
     private motorDiagnostics climbADiags;
     private motorDiagnostics climbBDiags;
     
-    private int shooterMotorAPort   = 24;
-    private int shooterMotorBPort   = 25;
-    private int turnMotorPort       = 26;
-
-    private DutyCycleEncoder m_turnEncoder;
-    private int turnEncoderPort = 5;
-    //private static final double c_TurnEncoderOffset = 0;  //note that we can just use the raw angle?
-
+    
     private static final double c_ShooterMaxSpeed = 1;
-    private static final double c_TurnMinAngle = 0;
-    private static final double c_TurnMaxAngle = 0;
     
     private double m_ShooterMotorASpeed = 1;
-    private double m_ShooterMotorBSpeed = 2;
+    private double m_ShooterMotorBSpeed = 1;
     private double m_turnAngle = 0;
 
     private double m_desiredMotorASpeed = 0;
@@ -50,9 +38,9 @@ public class climbSubsystem extends SubsystemBase {
     private double o_MotorASpeedOffset = 0;
     private double o_MotorBSpeedOffset = 0;
 
-    private static final double c_maxShooterASpeed  = 1000;
-    private static final double c_maxShooterBSpeed  = 1000;
-    private static final double c_maxTurnSpeed      = 1000;
+    private static final double c_maxShooterASpeed  = 1;
+    private static final double c_maxShooterBSpeed  = 1;
+
 
     private static final double c_speedOffsetIncrement = 5;
 
@@ -80,8 +68,8 @@ public class climbSubsystem extends SubsystemBase {
         private static final double Ks_turnMotor = 0;
 
     public climbSubsystem() {
-       climbMotorA = new SparkMax(shooterMotorAPort, SparkLowLevel.MotorType.kBrushless);
-        climbMotorB = new SparkMax(shooterMotorBPort, SparkLowLevel.MotorType.kBrushless);
+        climbMotorA = new SparkMax(c_climbMotorAPort, SparkLowLevel.MotorType.kBrushless);
+        climbMotorB = new SparkMax(c_climbMotorBPort, SparkLowLevel.MotorType.kBrushless);
 
         climbADiags = new motorDiagnostics(climbMotorA, "Shooter A");
         climbBDiags = new motorDiagnostics(climbMotorB, "Shooter B");
@@ -124,7 +112,6 @@ public class climbSubsystem extends SubsystemBase {
     public void periodic() {
         m_ShooterMotorASpeed   = m_ShooterAEncoder.getVelocity();
         m_ShooterMotorBSpeed   = m_ShooterBEncoder.getVelocity();
-        m_turnAngle = m_turnEncoder.get();
 
         climbMotorA.set(MathUtil.clamp(m_ShooterAPID.calculate(m_ShooterMotorASpeed, m_desiredMotorASpeed),
                                         -c_maxShooterASpeed,
@@ -146,6 +133,14 @@ public class climbSubsystem extends SubsystemBase {
         
     }
 
+    public void climb() {
+            //TBD...
+    }
+
+    public void retract() {
+            //TBD...
+    }
+
     public void setDesiredMotorASpeed(double speed) {
         m_desiredMotorASpeed = MathUtil.clamp(speed, -c_ShooterMaxSpeed, c_ShooterMaxSpeed);
     }
@@ -162,21 +157,6 @@ public class climbSubsystem extends SubsystemBase {
         return m_desiredMotorBSpeed;
     }
 
-    /**
-     *@param angle Angle in radians
-     */
-    public void setDesiredTurnAngle(double angle) {
-        m_desiredAngle = MathUtil.clamp(angle,c_TurnMinAngle,c_TurnMaxAngle);
-    }
-
-    public double getDesiredTurnAngle() {
-        return m_desiredAngle;
-    }
-
-    public double getActualTiltAngle() {
-        return m_turnAngle;
-      }
-      
 
     // Public functions to all D-Pad to adjust the offset of the Elevator Height
     public void incShooterASpeedOffset() {

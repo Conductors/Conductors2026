@@ -25,14 +25,20 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.LimelightHelpers.RawFiducial;
+import frc.robot.commands.climberCommand;
 import frc.robot.commands.driveSidewaysPID;
 import frc.robot.commands.driveSpinwaysPID;
 import frc.robot.commands.driveStraightPID;
 import frc.robot.commands.driveToPositionPID;
+import frc.robot.commands.intakeFuelCmd;
+import frc.robot.commands.setShooterSpeed;
+import frc.robot.commands.slideIntake;
 import frc.robot.commands.turnTowardsAprilPID;
+import frc.robot.commands.climberCommand.climbLevel;
 import frc.robot.subsystems.intake;
 import frc.robot.subsystems.shooterSubsystem;
 import frc.robot.subsystems.LEDSubsystem;
+import frc.robot.subsystems.climbSubsystem;
 
 public class Robot extends TimedRobot {
   private final CommandXboxController m_controller = new CommandXboxController(0);
@@ -51,10 +57,17 @@ public class Robot extends TimedRobot {
   private Trigger povDown     = m_controller.povDown();
   private Trigger povLeft     = m_controller.povLeft();
   private Trigger povRight    = m_controller.povRight();
-  private Trigger green       = new JoystickButton(m_buttonBoard, 1);
-  private Trigger yellow       = new JoystickButton(m_buttonBoard, 2);
-  private Trigger blue       = new JoystickButton(m_buttonBoard, 3);
-
+  
+  private Trigger whiteOne    = new JoystickButton(m_buttonBoard, 0);
+  private Trigger redOne      = new JoystickButton(m_buttonBoard, 1);
+  private Trigger yellowOne   = new JoystickButton(m_buttonBoard, 2);
+  private Trigger greenOne    = new JoystickButton(m_buttonBoard, 3);  
+  private Trigger blueOne     = new JoystickButton(m_buttonBoard, 4);
+  private Trigger whiteTwo    = new JoystickButton(m_buttonBoard, 5);
+  private Trigger redTwo      = new JoystickButton(m_buttonBoard, 6);
+  private Trigger yellowTwo   = new JoystickButton(m_buttonBoard, 7);
+  private Trigger greenTwo    = new JoystickButton(m_buttonBoard, 8);  
+  private Trigger blueTwo     = new JoystickButton(m_buttonBoard, 9);
   
   private boolean isHighGear = false;
   private boolean isFieldRelative = false;
@@ -69,14 +82,10 @@ public class Robot extends TimedRobot {
 
   StructPublisher<Pose2d> publisher = NetworkTableInstance.getDefault().getStructTopic("MyPose", Pose2d.struct).publish();
 
-  // private intake m_intake = new intake(Constants.intakeConstants.k_intakeMotorPortA,
-  //                                      Constants.intakeConstants.k_intakeMotorPortB,
-  //                                      Constants.intakeConstants.k_tiltMotorPortA,
-  //                                    Constants.intakeConstants.k_tiltMotorPortB,
-  //                                      Constants.intakeConstants.k_tiltEncoderPortA,
-  //                                      Constants.intakeConstants.k_tiltEncoderPortB);
+  private intake m_intake = new intake();
+  private shooterSubsystem m_ShooterSubsystem = new shooterSubsystem();
+  private climbSubsystem m_climbSubsystem = new climbSubsystem();
 
-  private final shooterSubsystem m_ShooterSubsystem = new shooterSubsystem();
   private final LEDSubsystem m_LedSubsystem = new LEDSubsystem();
   
   // Slew rate limiters to make joystick inputs more gentle; Passing in "3" means 1/3 sec from 0 to 1.
@@ -119,7 +128,7 @@ public Robot() {
     m_AprilTagSelected.addOption("2","2");
     m_AprilTagSelected.addOption("3","3");
   
-    m_ShooterSubsystem.initDefaultCommand();
+    //m_ShooterSubsystem.initDefaultCommand();
     //m_intake.initDefaultCommand();
   }
 
@@ -212,32 +221,35 @@ public Robot() {
     backButton.onTrue(shiftGears()); 
     startButton.onTrue(changeIsFieldRelative());
     
-    green.onTrue(turnTowardAprilTag(Constants.AprilTagConstants.leftTags)); 
-    yellow.onTrue(turnTowardAprilTag(Constants.AprilTagConstants.frontTags)); 
-    blue.onTrue(turnTowardAprilTag(Constants.AprilTagConstants.rightTags)); 
-
-    aButton.onTrue(turnTowardAprilTag(Constants.AprilTagConstants.leftTags));     
-    bButton.onTrue(new driveSpinwaysPID(Math.PI/2, getPeriod(), m_swerve));
-    yButton.onTrue(new driveSpinwaysPID(-Math.PI/2, getPeriod(), m_swerve));
+    aButton.onTrue(turnTowardAprilTag(Constants.AprilTagConstants.frontTags));     
+    bButton.onTrue(turnTowardAprilTag(Constants.AprilTagConstants.rightTags));
+    xButton.onTrue(turnTowardAprilTag(Constants.AprilTagConstants.leftTags));
     
-    
-    //lBTrigger.whileTrue(new setClawSpeed(0.5, m_AlgaeGrabber))
-    //          .onFalse(new setClawSpeed(0, m_AlgaeGrabber));
-    //rBTrigger.whileTrue(new setClawSpeed(-m_controller.getRightTriggerAxis(), m_AlgaeGrabber))
-    //          .onFalse(new setClawSpeed(0, m_AlgaeGrabber));    //check - out is negative
-    //lbButton.whileTrue(new setClawSpeed(0.5, m_AlgaeGrabber))
-    //          .onFalse(new setClawSpeed(0, m_AlgaeGrabber));
-    //rbButton.whileTrue(new setClawSpeed(-0.5, m_AlgaeGrabber))
-    //          .onFalse(new setClawSpeed(0, m_AlgaeGrabber));
-    //rbButton.onTrue(changeIsAlgaeRelative());
+    yButton.onTrue(new setShooterSpeed(Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
+            .onFalse(new setShooterSpeed(0, m_ShooterSubsystem));  //Just for testing
 
-    //povUp.onTrue(new InstantCommand(() -> m_AlgaeGrabber.IncCraneAngle()));
+
+    povUp.onTrue(new InstantCommand(() -> m_LedSubsystem.runInRange()));
     //povDown.onTrue(new InstantCommand(() -> m_AlgaeGrabber.DecCraneAngle()));
     //povRight.onTrue(new InstantCommand(() -> m_AlgaeGrabber.IncWristAngle()));
     //povLeft.onTrue(new InstantCommand(() -> m_AlgaeGrabber.DecWristAngle()));
-    
 
+    whiteOne.onTrue(new slideIntake(true, m_intake));
+    redOne.onTrue(new intakeFuelCmd(Constants.c_defaultIntakeSpeed, m_intake));
+    yellowOne.onTrue(new setShooterSpeed(Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
+              .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
+
+    greenOne.onTrue(new climberCommand(climbLevel.e_levelOne, m_climbSubsystem));  
+    blueOne.onTrue(new climberCommand(climbLevel.e_levelTwo, m_climbSubsystem)); 
    
+    whiteTwo.onTrue(new slideIntake(false, m_intake));    //retract
+    redTwo.onTrue(new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake));
+          
+    yellowTwo.onTrue(new setShooterSpeed(-Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
+              .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
+    greenTwo.onTrue(new climberCommand(climbLevel.e_floor, m_climbSubsystem));  
+    blueTwo.onTrue(new climberCommand(climbLevel.e_levelOne, m_climbSubsystem));
+
   }
   
   @Override
@@ -377,6 +389,7 @@ public Robot() {
   public Command turnTowardAprilTag(int[] tagIDs) {
     return new turnTowardsAprilPID(tagIDs, getPeriod(), m_swerve, this);
   }
+
 
   public double getAprilTx (int[] tagIDs) {
     double txToTurn = 0; //Math.random(); //use random for simulation

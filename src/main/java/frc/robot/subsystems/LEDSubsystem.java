@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj.LEDPattern;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class LEDSubsystem extends SubsystemBase {
-    private static final int kPort = 9;
+    private static final int kPort = 1;
     private static final int kLength = 10;
   
     private final AddressableLED m_led;
@@ -23,7 +23,7 @@ public class LEDSubsystem extends SubsystemBase {
       // Set the default command to turn the strip off, otherwise the last colors written by
       // the last command to run will continue to be displayed.
       // Note: Other default patterns could be used instead!
-      setDefaultCommand(runPattern(LEDPattern.solid(Color.kBlack)).withName("Off"));
+      setDefaultCommand(runPattern(LEDPattern.solid(Color.kRed)).withName("Off"));
     }
   
     @Override

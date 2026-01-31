@@ -1,66 +1,76 @@
 package frc.robot.subsystems;
 
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkLowLevel;
 import com.revrobotics.spark.SparkMax;
-
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
 
-public class intake extends SubsystemBase{
-    
+
+public class intake extends SubsystemBase {
+  
+  /* Intake Subsystem Constants */
+  public static final int k_tiltMotorPortA = 30;
+  public static final int k_tiltMotorPortB = 31;
+  public static final int k_intakeMotorPortA = 32;
+  public static final int k_intakeMotorPortB = 33;
+  public static final double k_tiltEncOffsetA = 0;
+  public static final double k_tiltEncOffsetB = 0;
+  public static final double[] k_tiltDistanceSetpointA = {
+    0,                        // Up
+    1                         // Down / Floor
+  };
+  public static final double[] k_tiltDistanceSetpointB = {
+    0,                        // Up
+    1                         // Down / Floor
+  };
+
+  public static final double KpTilt = 0.5;
+  public static final double tiltMaxVelocity = Math.PI;
+  public static final double tiltMaxAccel = Math.PI;
+  
+  /* Intake Subsystem Variables / Objects */
   private SparkMax tiltMotorA;  
   private SparkMax tiltMotorB;
   private SparkMax intakeMotorA;
   private SparkMax intakeMotorB;
   
-  private DutyCycleEncoder m_tiltEncoderA;
-  private DutyCycleEncoder m_tiltEncoderB;
+  private RelativeEncoder m_tiltEncoderA;
+  private RelativeEncoder m_tiltEncoderB;
   
   private double m_desiredIntakeSpeed = 0;
   private double m_actualIntakeSpeed = 0;
-  private static double c_normalIntakeSpeed = 1000;
-  private static double c_maxIntakeSpeed = 5000;
+  private static double c_maxIntakeSpeed = 1;
 
-  private double desiredTiltAngleA = Constants.intakeConstants.k_tiltAngleSetpointA[0];
-  private double desiredTiltAngleB = Constants.intakeConstants.k_tiltAngleSetpointB[0];
+  private double desiredtiltDistanceA = k_tiltDistanceSetpointA[0];
+  private double desiredtiltDistanceB = k_tiltDistanceSetpointB[0];
   private double actualTiltAngleA = 0;
   private double actualTiltAngleB = 0;
   private double TiltAngleOffsetA = 0;
   private double TiltAngleOffsetB = 0;
-  private double TiltAngleStep = 0.1;
   
   private final ProfiledPIDController m_intakePID;
   private final ProfiledPIDController m_tiltPIDControllerA;
   private final ProfiledPIDController m_tiltPIDControllerB;
+      
+  
 
   private double desiredIntakeSpeed = 0;
 
-  /**
-   * @param speed The speed at which the robot will drive
-   * @param drive The drive subsystem on which this command will run
-   */
-  public intake(int intakeMotorPortA,
-                        int intakeMotorPortB,
-                        int tiltMotorPortA,
-                        int tiltMotorPortB,
-                        int tiltEncoderPortA,
-                        int tiltEncoderPortB) {
+  public intake() {
 
-    intakeMotorA = new SparkMax(intakeMotorPortA, SparkLowLevel.MotorType.kBrushless);
-    intakeMotorB = new SparkMax(intakeMotorPortB, SparkLowLevel.MotorType.kBrushless);
-    tiltMotorA = new SparkMax(tiltMotorPortA, SparkLowLevel.MotorType.kBrushless);
-    tiltMotorB = new SparkMax(tiltMotorPortB, SparkLowLevel.MotorType.kBrushless);
-    m_tiltEncoderA = new DutyCycleEncoder(tiltEncoderPortA);
-    m_tiltEncoderB = new DutyCycleEncoder(tiltEncoderPortB);
-    m_tiltEncoderA.setDutyCycleRange(1.0/1025.0, 1024.0/1025.0);
-    m_tiltEncoderB.setDutyCycleRange(1.0/1025.0, 1024.0/1025.0);
+    intakeMotorA = new SparkMax(k_intakeMotorPortA, SparkLowLevel.MotorType.kBrushless);
+    intakeMotorB = new SparkMax(k_intakeMotorPortB, SparkLowLevel.MotorType.kBrushless);
+    tiltMotorA = new SparkMax(k_tiltMotorPortA, SparkLowLevel.MotorType.kBrushless);
+    tiltMotorB = new SparkMax(k_tiltMotorPortB, SparkLowLevel.MotorType.kBrushless);
+    m_tiltEncoderA = tiltMotorA.getEncoder();
+    m_tiltEncoderB = tiltMotorA.getEncoder();
+
     
     m_intakePID =
       new ProfiledPIDController(
@@ -69,28 +79,28 @@ public class intake extends SubsystemBase{
           0,
           new TrapezoidProfile.Constraints(
               c_maxIntakeSpeed,
-              c_maxIntakeSpeed*c_maxIntakeSpeed));
+              5*c_maxIntakeSpeed));
     m_intakePID.setTolerance(1);  //sets the tolerance for the PID controller, in meters
 
 
     m_tiltPIDControllerA =
       new ProfiledPIDController(
-          Constants.KpTilt,
+          KpTilt,
           0,
           0,
           new TrapezoidProfile.Constraints(
-              Constants.tiltMaxVelocity,
-              Constants.tiltMaxAccel));
+              tiltMaxVelocity,
+              tiltMaxAccel));
     m_tiltPIDControllerA.setTolerance(.05);  //sets the tolerance for the PID controller, in meters
 
     m_tiltPIDControllerB =
       new ProfiledPIDController(
-          Constants.KpTilt,
+          KpTilt,
           0,
           0,
           new TrapezoidProfile.Constraints(
-              Constants.tiltMaxVelocity,
-              Constants.tiltMaxAccel));
+              tiltMaxVelocity,
+              tiltMaxAccel));
     m_tiltPIDControllerB.setTolerance(.05);  //sets the tolerance for the PID controller, in meters
     
     // Set the default command for a subsystem here. (set the claw speed to 0)
@@ -99,8 +109,11 @@ public class intake extends SubsystemBase{
 
   @Override
   public void periodic() {
-    actualTiltAngleA = (m_tiltEncoderA.get()-Constants.intakeConstants.k_tiltEncOffsetA)*2*Math.PI;
-    actualTiltAngleB = (m_tiltEncoderB.get()-Constants.intakeConstants.k_tiltEncOffsetB)*2*Math.PI;
+    actualTiltAngleA = (m_tiltEncoderA.getPosition()-k_tiltEncOffsetA)*2*Math.PI;
+    actualTiltAngleB = (m_tiltEncoderB.getPosition()-k_tiltEncOffsetB)*2*Math.PI;
+
+    m_actualIntakeSpeed = intakeMotorA.get();
+    
 
     //Publish Algae Grabber STuff to the Dashboard
     SmartDashboard.putNumber("TiltAngleA", actualTiltAngleA);
@@ -108,16 +121,13 @@ public class intake extends SubsystemBase{
     SmartDashboard.putNumber("IntakeSpeed", desiredIntakeSpeed);
     SmartDashboard.putNumber("TiltAngleOffsetA", TiltAngleOffsetA);
     SmartDashboard.putNumber("TiltAngleOffsetB", TiltAngleOffsetB);
-    SmartDashboard.putNumber("Desired Tilt Angle A", desiredTiltAngleA);
-    SmartDashboard.putNumber("Desired Tilt Angle B", desiredTiltAngleB);
+    SmartDashboard.putNumber("Desired Tilt Angle A", desiredtiltDistanceA);
+    SmartDashboard.putNumber("Desired Tilt Angle B", desiredtiltDistanceB);
     SmartDashboard.putNumber("tiltMotorACurrent", tiltMotorA.getOutputCurrent());
     SmartDashboard.putNumber("tiltMotorBCurrent", tiltMotorB.getOutputCurrent());
     SmartDashboard.putNumber("TiltPID_ErrorA", m_tiltPIDControllerA.getPositionError());
     SmartDashboard.putNumber("TiltPID_ErrorB", m_tiltPIDControllerB.getPositionError());    
 
-    //craneMotor.set(-m_CranePIDController.calculate(actualCraneAngle, desiredCraneAngle));    //need to check motor direction
-    //wristMotor.set(m_WristPIDController.calculate(actualWristAngle, desiredWristAngle));
-    
     intakeMotorA.set(m_intakePID.calculate(m_actualIntakeSpeed, m_desiredIntakeSpeed));
     intakeMotorB.set(m_intakePID.calculate(m_actualIntakeSpeed, m_desiredIntakeSpeed));
 
@@ -125,20 +135,22 @@ public class intake extends SubsystemBase{
   }
 
   public void setDesiredTiltAngleA(double angle) {
-    desiredTiltAngleA = angle + TiltAngleOffsetA;
+    desiredtiltDistanceA = angle + TiltAngleOffsetA;
   }
   
     public void setDesiredTiltAngleB(double angle) {
-    desiredTiltAngleB= angle + TiltAngleOffsetB;
+    desiredtiltDistanceB= angle + TiltAngleOffsetB;
   }
 
 
-    public void deploy() {
-     
+    public void extend() {
+      setDesiredTiltAngleA(k_tiltDistanceSetpointA[1]);
+      setDesiredTiltAngleB(k_tiltDistanceSetpointB[1]);
     }
 
     public void retract() {
-
+      setDesiredTiltAngleA(k_tiltDistanceSetpointA[0]);
+      setDesiredTiltAngleB(k_tiltDistanceSetpointB[0]);
     }
 
     public void setIntakeSpeed(double speed) {

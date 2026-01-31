@@ -40,28 +40,9 @@ public final class Constants {
     public static final int kBR_TurnEncoderChannel = 0;
     public static final double kBR_TurnEncoderOffset = 0.782;
 
-    public static final double KpTilt = 0.5;
-    public static final double tiltMaxVelocity = Math.PI;
-    public static final double tiltMaxAccel = Math.PI;
 
-    public static final class intakeConstants {
-      public static final int k_tiltMotorPortA = 0;
-      public static final int k_tiltMotorPortB = 0;
-      public static final int k_intakeMotorPortA = 0;
-      public static final int k_intakeMotorPortB = 0;
-      public static final int k_tiltEncoderPortA = 0;
-      public static final int k_tiltEncoderPortB = 0;
-      public static final double k_tiltEncOffsetA = 0;
-      public static final double k_tiltEncOffsetB = 0;
-      public static final double[] k_tiltAngleSetpointA = {
-        0,                        // Up
-        1                         // Down / Floor
-      };
-      public static final double[] k_tiltAngleSetpointB = {
-        0,                        // Up
-        1                         // Down / Floor
-      };
-    }
+
+
 
     public static final class AutoConstants {
         public static final double kMaxSpeedMetersPerSecond = 3;
@@ -93,5 +74,9 @@ public final class Constants {
     public static final double[] shootMaxRange = {1.0, 3.0};      //max distance for shooter score
    
   }
+
+  public static final double c_defaultIntakeSpeed = .75;
+  public static final double c_defaultShooterSpeed = .70;   //tested at 70% speed
+  public static final double c_shooterMotorStop = 0;
 
 }
