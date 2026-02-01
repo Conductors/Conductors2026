@@ -111,6 +111,8 @@ public class Robot extends TimedRobot {
   private double txToTurn = 0;
   private double angleToTurn = 0;
 
+  public int[] m_focusAprilTags;
+
 public Robot() {
   //CameraServer.startAutomaticCapture();
 }
@@ -144,48 +146,11 @@ public Robot() {
     SmartDashboard.putNumber("Match Time", DriverStation.getMatchTime());
     SmartDashboard.putData("Command Scheduler", CommandScheduler.getInstance());
 
-    //AprilTagSelection
-    SmartDashboard.putData("April Tag Target", m_AprilTagSelected);  //Sync the Autochooser
-    
     publisher.set(m_swerve.m_odometry.getPoseMeters());
     
     //isInRangeTrigger.whileTrue(m_LedSubsystem.runInRange());
 
-    fiducials = LimelightHelpers.getRawFiducials("");
-    closestAprilTagID = 0;  //reset the closest tag ID each time
-    double closestAprilTagArea = 0;
-    for (RawFiducial fiducial : fiducials) {
-
-        id = fiducial.id;                    // Tag ID
-        txnc = fiducial.txnc;             // X offset (no crosshair)
-        tync = fiducial.tync;             // Y offset (no crosshair)
-        ta = fiducial.ta;                 // Target area
-        distToCamera = fiducial.distToCamera;  // Distance to camera
-        distToRobot = fiducial.distToRobot;    // Distance to robot
-        ambiguity = fiducial.ambiguity;   // Tag pose ambiguity
-      
-        if(ta > closestAprilTagArea) 
-        {
-          closestAprilTagArea = ta;
-          closestAprilTagID = id;
-        }
-
-
-    }
-    
-    if( (distToCamera < Constants.AprilTagConstants.shootMaxRange[1]) && 
-        (distToCamera > Constants.AprilTagConstants.shootMaxRange[0]) )   //just a test for the dist to hub 
-    {
-      System.out.println("is in range");
-      isInRange = true;
-      m_LedSubsystem.runInRange();
-    }
-
-    SmartDashboard.putBoolean("Is In Range?", isInRange);
-    SmartDashboard.putNumber("distToCamera", distToCamera);
-    SmartDashboard.putNumber("Txnc", txnc);
-    SmartDashboard.putNumber("closestAprilTag", closestAprilTagID);
-
+    scanForAprilTags();
     
   }
 
@@ -227,10 +192,13 @@ public Robot() {
     
     yButton.onTrue(new setShooterSpeed(Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
             .onFalse(new setShooterSpeed(0, m_ShooterSubsystem));  //Just for testing
+    
+    lbButton.onTrue(new setShooterSpeed(m_ShooterSubsystem, true, getDistToTag(m_focusAprilTags)))
+            .onFalse(new setShooterSpeed(0, m_ShooterSubsystem));
 
 
-    povUp.onTrue(new InstantCommand(() -> m_LedSubsystem.runInRange()));
-    //povDown.onTrue(new InstantCommand(() -> m_AlgaeGrabber.DecCraneAngle()));
+    povUp.onTrue(new InstantCommand(() -> m_ShooterSubsystem.incShooterASpeedOffset()));
+    povDown.onTrue(new InstantCommand(() -> m_ShooterSubsystem.decShooterASpeedOffset()));
     //povRight.onTrue(new InstantCommand(() -> m_AlgaeGrabber.IncWristAngle()));
     //povLeft.onTrue(new InstantCommand(() -> m_AlgaeGrabber.DecWristAngle()));
 
@@ -326,8 +294,7 @@ public Robot() {
         break;
       case "Auto 1":
         temp = Commands.sequence(
-          new InstantCommand(() -> m_swerve.resetOdometry(new Pose2d(0,0, new Rotation2d(0)))),
-          
+          new InstantCommand(() -> m_swerve.resetOdometry(new Pose2d(0,0, new Rotation2d(0)))),          
           driveStraight(1));
         break;
       case "Auto 2":
@@ -358,6 +325,7 @@ public Robot() {
   public InstantCommand resetOdoCommand() {
     return new InstantCommand(() -> m_swerve.resetOdometry(new Pose2d(0,0, new Rotation2d(0))));
   }
+
   public Command driveStraight(double dist) {
     return new driveStraightPID(dist, getPeriod(), m_swerve);
   }
@@ -387,11 +355,48 @@ public Robot() {
   }
 
   public Command turnTowardAprilTag(int[] tagIDs) {
+    m_focusAprilTags = tagIDs;
     return new turnTowardsAprilPID(tagIDs, getPeriod(), m_swerve, this);
   }
 
 
-  public double getAprilTx (int[] tagIDs) {
+  public void scanForAprilTags() {
+    fiducials = LimelightHelpers.getRawFiducials("");
+    closestAprilTagID = 0;  //reset the closest tag ID each time
+    double closestAprilTagArea = 0;
+    for (RawFiducial fiducial : fiducials) {
+
+        id = fiducial.id;                    // Tag ID
+        txnc = fiducial.txnc;             // X offset (no crosshair)
+        tync = fiducial.tync;             // Y offset (no crosshair)
+        ta = fiducial.ta;                 // Target area
+        distToCamera = fiducial.distToCamera;  // Distance to camera
+        distToRobot = fiducial.distToRobot;    // Distance to robot
+        ambiguity = fiducial.ambiguity;   // Tag pose ambiguity
+      
+        if(ta > closestAprilTagArea) 
+        {
+          closestAprilTagArea = ta;
+          closestAprilTagID = id;
+        }
+
+    }
+    
+    if( (distToCamera < Constants.AprilTagConstants.shootMaxRange[1]) && 
+        (distToCamera > Constants.AprilTagConstants.shootMaxRange[0]) )   //just a test for the dist to hub 
+    {
+      System.out.println("is in range");
+      isInRange = true;
+      m_LedSubsystem.runInRange();
+    }
+
+    SmartDashboard.putBoolean("Is In Range?", isInRange);
+    SmartDashboard.putNumber("distToCamera", distToCamera);
+    SmartDashboard.putNumber("Txnc", txnc);
+    SmartDashboard.putNumber("closestAprilTag", closestAprilTagID);
+  }
+
+    public double getAprilTx (int[] tagIDs) {
     double txToTurn = 0; //Math.random(); //use random for simulation
     if (tagIDs.length != 0)
     {
@@ -409,11 +414,36 @@ public Robot() {
         }
       }
     }
-      angleToTurn = -(txToTurn)*(Math.PI/180); 
-      SmartDashboard.putNumber("TXTesting", txToTurn);
-      SmartDashboard.putNumber("AngleToTurn", angleToTurn);
-      return angleToTurn;
+
+    angleToTurn = -(txToTurn)*(Math.PI/180); 
+    SmartDashboard.putNumber("TXTesting", txToTurn);
+    SmartDashboard.putNumber("AngleToTurn", angleToTurn);
+    return angleToTurn;
   }
 
+  public double getDistToTag (int[] tagIDs) {
+    double distToTag = 0; //Math.random(); //use random for simulation
+    if (tagIDs.length != 0)
+    {
+      System.out.println("TagID != 0");
+      for(RawFiducial fiducial : fiducials)   //cycle through all detected April Tags
+      {
+        for(int tagID : tagIDs) {             //determine if any of the detect tags are in the list of inters
+          if (fiducial.id == tagID) {
+            distToTag = fiducial.distToCamera;
+            System.out.println(distToTag);
+          } else {
+            //txToTurn = 0;
+            System.out.println("TagID = 0");
+          }
+        }
+      }
+    }
+
+    SmartDashboard.putNumber("distToTag", distToTag);
+
+    //return distToTag;
+    return 0.82; //for sim only
+  }
 
 }

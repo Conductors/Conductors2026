@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.motorDiagnostics;
+import frc.robot.Constants;
 
 public class shooterSubsystem extends SubsystemBase {
 
@@ -147,8 +148,10 @@ public class shooterSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Desired ShooterB Speed", m_desiredMotorBSpeed);
         SmartDashboard.putNumber("Shooter A Speed", m_ShooterMotorASpeed);
         SmartDashboard.putNumber("Shooter B Speed", m_ShooterMotorBSpeed);
-        SmartDashboard.putNumber("Turn Motor Speed", turnMotor.get());
+        SmartDashboard.putNumber("Shooter A Offset", o_MotorASpeedOffset);
+        SmartDashboard.putNumber("Shooter B Offset", o_MotorBSpeedOffset);
 
+        SmartDashboard.putNumber("Turn Motor Speed", turnMotor.get());
         SmartDashboard.putNumber("Desired Turn Angle", m_desiredAngle);
         SmartDashboard.putNumber("Actual Turn Angle", m_turnAngle);
 
@@ -158,7 +161,12 @@ public class shooterSubsystem extends SubsystemBase {
     }
 
     public void setDesiredMotorASpeed(double speed) {
-        m_desiredMotorASpeed = MathUtil.clamp(speed, -c_ShooterMaxSpeed, c_ShooterMaxSpeed);
+        if(speed == 0)
+        {
+            m_desiredMotorASpeed = 0;
+        } else {
+            m_desiredMotorASpeed = MathUtil.clamp(speed + o_MotorASpeedOffset, -c_ShooterMaxSpeed, c_ShooterMaxSpeed);
+        }
     }
 
     public double getDesiredMotorASpeed() {
@@ -166,7 +174,11 @@ public class shooterSubsystem extends SubsystemBase {
     }
 
     public void setDesiredMotorBSpeed(double speed) {
-        m_desiredMotorBSpeed = MathUtil.clamp(speed, -c_ShooterMaxSpeed, c_ShooterMaxSpeed);
+        if(speed == 0) {
+            m_desiredMotorBSpeed = 0;
+        } else {
+            m_desiredMotorBSpeed = MathUtil.clamp(speed + o_MotorBSpeedOffset, -c_ShooterMaxSpeed, c_ShooterMaxSpeed);
+        }
     }
 
     public double getDesiredMotorBSpeed() {
@@ -215,7 +227,7 @@ public class shooterSubsystem extends SubsystemBase {
     public double calcSpeed(double dist) {
         double setSpeed = c_minShooterASpeed;        //defaults to min speed
 
-        setSpeed = c_minShooterASpeed;      //Change this for different distances (calibration logic only)
+        setSpeed = dist;      //Change this for different distances (calibration logic only)
 
     
         return setSpeed;
