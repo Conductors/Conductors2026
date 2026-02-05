@@ -10,6 +10,7 @@ public class setShooterSpeed extends Command {
   private double m_speedCmd = 0;
   private boolean m_useDistance = false;
   private double m_distanceFromTag;
+  
 
   /**
    *Creates a new DriveDistance
@@ -57,7 +58,7 @@ public class setShooterSpeed extends Command {
   @Override
   public boolean isFinished() {
     // Determines when to finish the command, return true always for speed commands
-    return true;   
+    return m_ShooterSubsystem.getShoterAIsAtGoal();   
   }
 
 }

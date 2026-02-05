@@ -193,8 +193,8 @@ public Robot() {
     yButton.onTrue(new setShooterSpeed(Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
             .onFalse(new setShooterSpeed(0, m_ShooterSubsystem));  //Just for testing
     
-    lbButton.onTrue(new setShooterSpeed(m_ShooterSubsystem, true, getDistToTag(m_focusAprilTags)))
-            .onFalse(new setShooterSpeed(0, m_ShooterSubsystem));
+    lbButton.onTrue(new setShooterSpeed(Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
+            .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
 
 
     povUp.onTrue(new InstantCommand(() -> m_ShooterSubsystem.incShooterASpeedOffset()));

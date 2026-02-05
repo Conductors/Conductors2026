@@ -9,6 +9,7 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -28,15 +29,15 @@ public class shooterSubsystem extends SubsystemBase {
     private motorDiagnostics shooterADiags;
     private motorDiagnostics shooterBDiags;
     
-    private int shooterMotorAPort   = 24;
-    private int shooterMotorBPort   = 25;
+    private int shooterMotorAPort   = 25;
+    private int shooterMotorBPort   = 24;
     private int turnMotorPort       = 26;       //Not currently used... future
 
     private DutyCycleEncoder m_turnEncoder;
     private int turnEncoderPort = 5;
     //private static final double c_TurnEncoderOffset = 0;  //note that we can just use the raw angle?
 
-    private static final double c_ShooterMaxSpeed = 1;
+    private static final double c_ShooterMaxSpeed = 5000;
     private static final double c_TurnMinAngle = 0;
     private static final double c_TurnMaxAngle = 0;
     
@@ -64,11 +65,12 @@ public class shooterSubsystem extends SubsystemBase {
     private ProfiledPIDController m_ShooterAPID;
     private ProfiledPIDController m_ShooterBPID;
     private ProfiledPIDController m_turnMotorPID;
-        private static final double Kp_shooterA = .1;
+    private final SimpleMotorFeedforward m_shooterFeedForward = new SimpleMotorFeedforward(0.5,0);
+        private static final double Kp_shooterA = .00025;
         private static final double Ki_shooterA = 0;
         private static final double Kd_shooterA = 0;
-        private static final double Kv_shooterA = 0;
-        private static final double Ks_shooterA = 0;
+        private static final double Kv_shooterA = 36000;
+        private static final double Ks_shooterA = 6000;
         private static final double Kp_shooterB = .1;
         private static final double Ki_shooterB = 0;
         private static final double Kd_shooterB = 0;
@@ -129,10 +131,12 @@ public class shooterSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         m_ShooterMotorASpeed   = m_ShooterAEncoder.getVelocity();
-        m_ShooterMotorBSpeed   = m_ShooterBEncoder.getVelocity();
+        m_ShooterMotorBSpeed   = //m_ShooterBEncoder.getVelocity();
         m_turnAngle = m_turnEncoder.get();
+        final double shooterFeedForward = m_shooterFeedForward.calculate(m_desiredMotorASpeed);
 
-        shooterMotorA.set(MathUtil.clamp(m_ShooterAPID.calculate(m_ShooterMotorASpeed, m_desiredMotorASpeed),
+
+        shooterMotorA.set(shooterFeedForward + MathUtil.clamp(m_ShooterAPID.calculate(m_ShooterMotorASpeed, m_desiredMotorASpeed),
                                         -c_maxShooterASpeed,
                                         c_maxShooterASpeed));    //need to check motor direction
         shooterMotorB.set(MathUtil.clamp(m_ShooterBPID.calculate(m_desiredMotorBSpeed, m_desiredMotorBSpeed),
@@ -196,7 +200,7 @@ public class shooterSubsystem extends SubsystemBase {
         return m_desiredAngle;
     }
 
-    public double getActualTiltAngle() {
+    public double getActualTurnAngle() {
         return m_turnAngle;
     }
       
@@ -218,7 +222,9 @@ public class shooterSubsystem extends SubsystemBase {
     public void decShooterBSpeedOffset() {
         o_MotorBSpeedOffset = o_MotorBSpeedOffset - c_speedOffsetIncrement;
     }
-
+public boolean getShoterAIsAtGoal () {
+    return m_ShooterAPID.atGoal();
+}
     /**
      * 
      * @param dist The distance from the camera, in meters
