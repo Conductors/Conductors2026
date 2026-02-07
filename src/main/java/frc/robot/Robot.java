@@ -30,9 +30,10 @@ import frc.robot.commands.driveSidewaysPID;
 import frc.robot.commands.driveSpinwaysPID;
 import frc.robot.commands.driveStraightPID;
 import frc.robot.commands.driveToPositionPID;
+import frc.robot.commands.extendIntake;
 import frc.robot.commands.intakeFuelCmd;
+import frc.robot.commands.retractIntake;
 import frc.robot.commands.setShooterSpeed;
-import frc.robot.commands.slideIntake;
 import frc.robot.commands.turnTowardsAprilPID;
 import frc.robot.commands.climberCommand.climbLevel;
 import frc.robot.subsystems.intake;
@@ -199,10 +200,10 @@ public Robot() {
 
     povUp.onTrue(new InstantCommand(() -> m_ShooterSubsystem.incShooterASpeedOffset()));
     povDown.onTrue(new InstantCommand(() -> m_ShooterSubsystem.decShooterASpeedOffset()));
-    //povRight.onTrue(new InstantCommand(() -> m_AlgaeGrabber.IncWristAngle()));
-    //povLeft.onTrue(new InstantCommand(() -> m_AlgaeGrabber.DecWristAngle()));
+    povLeft.onTrue(new InstantCommand(() -> m_intake.incIntakeSlideOffset()));
+    povRight.onTrue(new InstantCommand(() -> m_intake.decIntakeSlideOffset()));
 
-    whiteOne.onTrue(new slideIntake(true, m_intake));
+    whiteOne.onTrue(new extendIntake(true, m_intake));     //extend
     redOne.onTrue(new intakeFuelCmd(Constants.c_defaultIntakeSpeed, m_intake));
     yellowOne.onTrue(new setShooterSpeed(Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
               .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
@@ -210,7 +211,7 @@ public Robot() {
     greenOne.onTrue(new climberCommand(climbLevel.e_levelOne, m_climbSubsystem));  
     blueOne.onTrue(new climberCommand(climbLevel.e_levelTwo, m_climbSubsystem)); 
    
-    whiteTwo.onTrue(new slideIntake(false, m_intake));    //retract
+    whiteTwo.onTrue(new retractIntake(true, m_intake));    //retract
     redTwo.onTrue(new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake));
           
     yellowTwo.onTrue(new setShooterSpeed(-Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
@@ -295,7 +296,8 @@ public Robot() {
       case "Auto 1":
         temp = Commands.sequence(
           new InstantCommand(() -> m_swerve.resetOdometry(new Pose2d(0,0, new Rotation2d(0)))),          
-          driveStraight(1));
+          driveStraight(1),
+          new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1));
         break;
       case "Auto 2":
         temp = Commands.sequence(
@@ -315,7 +317,7 @@ public Robot() {
         new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(.5),
         new InstantCommand(() -> System.out.println("Done !")));
         break;
-      
+
       default:
         break;
     }

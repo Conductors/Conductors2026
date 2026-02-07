@@ -37,7 +37,7 @@ private final ProfiledPIDController m_PIDController;
           new TrapezoidProfile.Constraints(
                      6,                                       //Constants.AutoConstants.kMaxSpeedMetersPerSecond, 
                        36));                                                 //Constants.AutoConstants.kMaxAccelerationMetersPerSecondSquared));
-    m_PIDController.setTolerance(.01);  //sets the tolerance for the PID controller, in meters
+    m_PIDController.setTolerance(.001);  //sets the tolerance for the PID controller, in meters
   }
 
   @Override
@@ -56,7 +56,7 @@ private final ProfiledPIDController m_PIDController;
   public void execute() {
     //run repeatedly, until isFinished() returns true
     m_currentPos = lDrivetrain.m_odometry.getPoseMeters().getX();
-    //System.out.println(m_currentPos);
+    System.out.println(m_currentPos);
     
     //Drive the robot to the goal position, clamping the error output to +/- max speed
     lDrivetrain.drive(

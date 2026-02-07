@@ -10,7 +10,7 @@ public class setShooterSpeed extends Command {
   private double m_speedCmd = 0;
   private boolean m_useDistance = false;
   private double m_distanceFromTag;
-  
+
 
   /**
    *Creates a new DriveDistance
