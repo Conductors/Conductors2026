@@ -54,7 +54,7 @@ public class shooterSubsystem extends SubsystemBase {
 
     private static final double c_maxShooterASpeed  = 1;
     private static final double c_minShooterASpeed  = 0.1;
-    private static final double c_maxShooterBSpeed  = 1;
+    private static final double c_shooterBSpeed  = .3;
     private static final double c_maxTurnSpeed      = 1;
 
     private static final double c_speedOffsetIncrement = .05;
@@ -131,7 +131,7 @@ public class shooterSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         m_ShooterMotorASpeed   = m_ShooterAEncoder.getVelocity();
-        m_ShooterMotorBSpeed   = //m_ShooterBEncoder.getVelocity();
+        m_ShooterMotorBSpeed   = m_ShooterBEncoder.getVelocity();
         m_turnAngle = m_turnEncoder.get();
         final double shooterFeedForward = m_shooterFeedForward.calculate(m_desiredMotorASpeed);
 
@@ -139,14 +139,18 @@ public class shooterSubsystem extends SubsystemBase {
         shooterMotorA.set(shooterFeedForward + MathUtil.clamp(m_ShooterAPID.calculate(m_ShooterMotorASpeed, m_desiredMotorASpeed),
                                         -c_maxShooterASpeed,
                                         c_maxShooterASpeed));    //need to check motor direction
-        shooterMotorB.set(MathUtil.clamp(m_ShooterBPID.calculate(m_desiredMotorBSpeed, m_desiredMotorBSpeed),
-                                        -c_maxShooterBSpeed,
-                                        c_maxShooterBSpeed));
+        
+        shooterMotorB.set(m_ShooterMotorBSpeed);
+            
+        //MathUtil.clamp(m_ShooterBPID.calculate(m_desiredMotorBSpeed, m_desiredMotorBSpeed),
+        //                                -c_maxShooterBSpeed,
+        //                                c_maxShooterBSpeed));
                                         
-        turnMotor.set(-MathUtil.clamp(m_turnMotorPID.calculate(m_turnAngle, m_desiredAngle),
+        /*turnMotor.set(-MathUtil.clamp(m_turnMotorPID.calculate(m_turnAngle, m_desiredAngle),
                                         -c_maxTurnSpeed,
                                         c_maxTurnSpeed));
-        
+        */
+
         //Publish Stuff to Dashboard
         SmartDashboard.putNumber("Desired ShooterA Speed", m_desiredMotorASpeed);
         SmartDashboard.putNumber("Desired ShooterB Speed", m_desiredMotorBSpeed);
@@ -180,8 +184,10 @@ public class shooterSubsystem extends SubsystemBase {
     public void setDesiredMotorBSpeed(double speed) {
         if(speed == 0) {
             m_desiredMotorBSpeed = 0;
-        } else {
-            m_desiredMotorBSpeed = MathUtil.clamp(speed + o_MotorBSpeedOffset, -c_ShooterMaxSpeed, c_ShooterMaxSpeed);
+        } else if(speed > 0) {
+            m_desiredMotorBSpeed = c_shooterBSpeed;
+        } else if(speed < 0) {
+            m_desiredMotorBSpeed = -c_shooterBSpeed;
         }
     }
 

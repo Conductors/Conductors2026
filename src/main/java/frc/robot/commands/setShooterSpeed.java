@@ -47,6 +47,8 @@ public class setShooterSpeed extends Command {
   public void execute() {
     //run repeatedly, until isFinished() returns true
     m_ShooterSubsystem.setDesiredMotorASpeed(m_speedCmd);
+    m_ShooterSubsystem.setDesiredMotorBSpeed(m_speedCmd);
+    
   }
 
   @Override
