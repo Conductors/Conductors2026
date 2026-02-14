@@ -139,7 +139,7 @@ public class intake extends SubsystemBase {
     //SmartDashboard.putNumber("slideMotorBCurrent", slideMotorB.getOutputCurrent());
     SmartDashboard.putNumber("slidePID_ErrorA", m_slidePIDControllerA.getPositionError());
     //SmartDashboard.putNumber("slidePID_ErrorB", m_slidePIDControllerB.getPositionError());    
-
+    SmartDashboard.putNumber("desiredSlideMotorspeed", m_desiredSlideSpeed);
     //intakeMotorA.set(m_intakePID.calculate(m_actualIntakeSpeed, m_desiredIntakeSpeed));
     //intakeMotorB.set(m_intakePID.calculate(m_actualIntakeSpeed, m_desiredIntakeSpeed));
     intakeMotorA.set(intakeFeedForward + MathUtil.clamp(m_intakePID.calculate(m_actualIntakeSpeed, m_desiredIntakeSpeed),
@@ -147,6 +147,8 @@ public class intake extends SubsystemBase {
                         c_maxIntakeSpeed));
 
 
+
+   slideMotorA.set(m_desiredSlideSpeed);
   }
 
   /*public void setDesiredslideAngleA(double angle) {

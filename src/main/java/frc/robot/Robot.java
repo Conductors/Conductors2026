@@ -59,16 +59,16 @@ public class Robot extends TimedRobot {
   private Trigger povLeft     = m_controller.povLeft();
   private Trigger povRight    = m_controller.povRight();
   
-  private Trigger whiteOne    = new JoystickButton(m_buttonBoard, 0);
-  private Trigger redOne      = new JoystickButton(m_buttonBoard, 1);
-  private Trigger yellowOne   = new JoystickButton(m_buttonBoard, 2);
-  private Trigger greenOne    = new JoystickButton(m_buttonBoard, 3);  
-  private Trigger blueOne     = new JoystickButton(m_buttonBoard, 4);
-  private Trigger whiteTwo    = new JoystickButton(m_buttonBoard, 5);
-  private Trigger redTwo      = new JoystickButton(m_buttonBoard, 6);
-  private Trigger yellowTwo   = new JoystickButton(m_buttonBoard, 7);
-  private Trigger greenTwo    = new JoystickButton(m_buttonBoard, 8);  
-  private Trigger blueTwo     = new JoystickButton(m_buttonBoard, 9);
+  private Trigger whiteOne    = new JoystickButton(m_buttonBoard, 1);
+  private Trigger redOne      = new JoystickButton(m_buttonBoard, 2);
+  private Trigger yellowOne   = new JoystickButton(m_buttonBoard, 3);
+  private Trigger greenOne    = new JoystickButton(m_buttonBoard, 4);  
+  private Trigger blueOne     = new JoystickButton(m_buttonBoard, 5);
+  private Trigger whiteTwo    = new JoystickButton(m_buttonBoard, 6);
+  private Trigger redTwo      = new JoystickButton(m_buttonBoard, 7);
+  private Trigger yellowTwo   = new JoystickButton(m_buttonBoard, 8);
+  private Trigger greenTwo    = new JoystickButton(m_buttonBoard, 9);  
+  private Trigger blueTwo     = new JoystickButton(m_buttonBoard, 10);
   
   private boolean isHighGear = false;
   private boolean isFieldRelative = false;
@@ -203,16 +203,23 @@ public Robot() {
     povLeft.onTrue(new InstantCommand(() -> m_intake.incIntakeSlideOffset()));
     povRight.onTrue(new InstantCommand(() -> m_intake.decIntakeSlideOffset()));
 
-    whiteOne.onTrue(new extendIntake(true, m_intake));     //extend
+    whiteOne.onTrue(new extendIntake(true, m_intake));
+    whiteOne.onFalse(new extendIntake(false, m_intake));
+
+     //extend
     redOne.onTrue(new intakeFuelCmd(Constants.c_defaultIntakeSpeed, m_intake));
+    redOne.onFalse(new intakeFuelCmd(0, m_intake));
     yellowOne.onTrue(new setShooterSpeed(Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
               .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
 
     greenOne.onTrue(new climberCommand(climbLevel.e_levelOne, m_climbSubsystem));  
     blueOne.onTrue(new climberCommand(climbLevel.e_levelTwo, m_climbSubsystem)); 
    
-    whiteTwo.onTrue(new retractIntake(true, m_intake));    //retract
+    whiteTwo.onTrue(new retractIntake(true, m_intake));
+    whiteTwo.onFalse(new retractIntake(false, m_intake));    //retract
     redTwo.onTrue(new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake));
+    redTwo.onFalse(new intakeFuelCmd(0, m_intake));
+
           
     yellowTwo.onTrue(new setShooterSpeed(-Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
               .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
