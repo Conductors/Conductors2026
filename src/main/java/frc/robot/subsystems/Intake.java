@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.motorDiagnostics;
 
 
 public class intake extends SubsystemBase {
@@ -45,6 +46,8 @@ public class intake extends SubsystemBase {
   //private SparkMax slideMotorB;
   private SparkMax intakeMotorA;
   //private SparkMax intakeMotorB;
+
+  private motorDiagnostics intakeDiags;
   
   private RelativeEncoder m_slideEncoderA;
   //private RelativeEncoder m_slideEncoderB;
@@ -74,6 +77,7 @@ public class intake extends SubsystemBase {
   public intake() {
 
     intakeMotorA = new SparkMax(k_intakeMotorPortA, SparkLowLevel.MotorType.kBrushless);
+    intakeDiags = new motorDiagnostics(intakeMotorA, "Intake Motor Diag");
     //intakeMotorB = new SparkMax(k_intakeMotorPortB, SparkLowLevel.MotorType.kBrushless);
     slideMotorA = new SparkMax(k_slideMotorPortA, SparkLowLevel.MotorType.kBrushless);
     //slideMotorB = new SparkMax(k_slideMotorPortB, SparkLowLevel.MotorType.kBrushless);
@@ -132,6 +136,10 @@ public class intake extends SubsystemBase {
     //SmartDashboard.putNumber("slideAngleB", actualslideAngleB);
     SmartDashboard.putNumber("IntakeSpeed", m_desiredIntakeSpeed);
     SmartDashboard.putNumber("slideAngleOffsetA", slideAngleOffsetA);
+    SmartDashboard.putNumber("slideAActualSpeed", m_actualIntakeSpeed);
+
+    intakeDiags.publishMotorData();
+
     //SmartDashboard.putNumber("slideAngleOffsetB", slideAngleOffsetB);
     //SmartDashboard.putNumber("Desired slide Angle A", desiredslideDistanceA);
     //SmartDashboard.putNumber("Desired slide Angle B", desiredslideDistanceB);
@@ -142,13 +150,12 @@ public class intake extends SubsystemBase {
     SmartDashboard.putNumber("desiredSlideMotorspeed", m_desiredSlideSpeed);
     //intakeMotorA.set(m_intakePID.calculate(m_actualIntakeSpeed, m_desiredIntakeSpeed));
     //intakeMotorB.set(m_intakePID.calculate(m_actualIntakeSpeed, m_desiredIntakeSpeed));
-    intakeMotorA.set(intakeFeedForward + MathUtil.clamp(m_intakePID.calculate(m_actualIntakeSpeed, m_desiredIntakeSpeed),
-                        -c_maxIntakeSpeed,
-                        c_maxIntakeSpeed));
+    intakeMotorA.set(m_desiredIntakeSpeed);            //(intakeFeedForward + MathUtil.clamp(m_intakePID.calculate(m_actualIntakeSpeed, m_desiredIntakeSpeed),
+                                                        // -c_maxIntakeSpeed,
+                                                        //c_maxIntakeSpeed));
 
+    slideMotorA.set(m_desiredSlideSpeed);
 
-
-   slideMotorA.set(m_desiredSlideSpeed);
   }
 
   /*public void setDesiredslideAngleA(double angle) {

@@ -54,7 +54,7 @@ public class shooterSubsystem extends SubsystemBase {
 
     private static final double c_maxShooterASpeed  = 1;
     private static final double c_minShooterASpeed  = 0.1;
-    private static final double c_shooterBSpeed  = .3;
+    private static final double c_shooterBSpeed  = .7;
     private static final double c_maxTurnSpeed      = 1;
 
     private static final double c_speedOffsetIncrement = .05;
@@ -140,7 +140,7 @@ public class shooterSubsystem extends SubsystemBase {
                                         -c_maxShooterASpeed,
                                         c_maxShooterASpeed));    //need to check motor direction
         
-        shooterMotorB.set(m_ShooterMotorBSpeed);
+        shooterMotorB.set(m_desiredMotorBSpeed);
             
         //MathUtil.clamp(m_ShooterBPID.calculate(m_desiredMotorBSpeed, m_desiredMotorBSpeed),
         //                                -c_maxShooterBSpeed,

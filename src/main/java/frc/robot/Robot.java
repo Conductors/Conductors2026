@@ -207,7 +207,7 @@ public Robot() {
     whiteOne.onFalse(new extendIntake(false, m_intake));
 
      //extend
-    redOne.onTrue(new intakeFuelCmd(Constants.c_defaultIntakeSpeed, m_intake));
+    redOne.onTrue(new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake));
     redOne.onFalse(new intakeFuelCmd(0, m_intake));
     yellowOne.onTrue(new setShooterSpeed(Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
               .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
@@ -217,7 +217,7 @@ public Robot() {
    
     whiteTwo.onTrue(new retractIntake(true, m_intake));
     whiteTwo.onFalse(new retractIntake(false, m_intake));    //retract
-    redTwo.onTrue(new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake));
+    redTwo.onTrue(new intakeFuelCmd(Constants.c_defaultIntakeSpeed, m_intake));
     redTwo.onFalse(new intakeFuelCmd(0, m_intake));
 
           
