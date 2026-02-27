@@ -15,80 +15,76 @@ import frc.motorDiagnostics;
 
 public class climbSubsystem extends SubsystemBase {
 
-    private static final int c_climbMotorAPort = 40;
-    private static final int c_climbMotorBPort = 41;
+    private static final int c_climbMotorPort = 40;
+    //private static final int c_climbMotorBPort = 41;
 
-    private SparkMax climbMotorA;  
-    private SparkMax climbMotorB;  
+    private SparkMax climbMotor;  
+    //private SparkMax climbMotorB;  
 
-    private motorDiagnostics climbADiags;
-    private motorDiagnostics climbBDiags;
+    private motorDiagnostics climbDiags;
+    //private motorDiagnostics climbBDiags;
     
     
-    private static final double c_ShooterMaxSpeed = 1;
+    private static final double c_maxClimbSpeed = 1;
     
-    private double m_ShooterMotorASpeed = 1;
-    private double m_ShooterMotorBSpeed = 1;
-    private double m_turnAngle = 0;
+    private double m_climbMotorSpeed = 1;
+    //private double m_ShooterMotorBSpeed = 1;
+    //private double m_turnAngle = 0;
 
-    private double m_desiredMotorASpeed = 0;
-    private double m_desiredMotorBSpeed = 0;
-    private double m_desiredAngle = 0;
+    private double m_desiredMotorSpeed = 0;
+    //private double m_desiredMotorBSpeed = 0;
+    //private double m_desiredAngle = 0;
 
-    private double o_MotorASpeedOffset = 0;
-    private double o_MotorBSpeedOffset = 0;
-
-    private static final double c_maxShooterASpeed  = 1;
-    private static final double c_maxShooterBSpeed  = 1;
-
+    private double o_MotorSpeedOffset = 0;
+    //private double o_MotorBSpeedOffset = 0;
 
     private static final double c_speedOffsetIncrement = 5;
 
 
-    private RelativeEncoder m_ShooterAEncoder;
-    private RelativeEncoder m_ShooterBEncoder;
+    private RelativeEncoder m_climbEncoder;
+    //private RelativeEncoder m_ShooterBEncoder;
 
-    private ProfiledPIDController m_ShooterAPID;
-    private ProfiledPIDController m_ShooterBPID;
-    private ProfiledPIDController m_turnMotorPID;
-        private static final double Kp_shooterA = 1;
-        private static final double Ki_shooterA = 0;
-        private static final double Kd_shooterA = 0;
-        private static final double Kv_shooterA = 0;
-        private static final double Ks_shooterA = 0;
-        private static final double Kp_shooterB = 1;
-        private static final double Ki_shooterB = 0;
-        private static final double Kd_shooterB = 0;
-        private static final double Kv_shooterB = 0;
-        private static final double Ks_shooterB = 0;
-        private static final double Kp_turnMotor = 1;
-        private static final double Ki_turnMotor = 0;
-        private static final double Kd_turnMotor = 0;
-        private static final double Kv_turnMotor = 0;
-        private static final double Ks_turnMotor = 0;
+    private ProfiledPIDController m_climbPID;
+     //ProfiledPIDController m_ShooterBPID;
+    //private ProfiledPIDController m_turnMotorPID;
+        private static final double Kp_climb = 1;
+        private static final double Ki_climb = 0;
+        private static final double Kd_climb = 0;
+        private static final double Kv_climb = 0;
+        private static final double Ks_climb = 0;
+        //private static final double Kp_shooterB = 1;
+        //private static final double Ki_shooterB = 0;
+        //private static final double Kd_shooterB = 0;
+        //private static final double Kv_shooterB = 0;
+        //private static final double Ks_shooterB = 0;
+        //private static final double Kp_turnMotor = 1;
+        //private static final double Ki_turnMotor = 0;
+        //private static final double Kd_turnMotor = 0;
+        //private static final double Kv_turnMotor = 0;
+        //private static final double Ks_turnMotor = 0;
 
     public climbSubsystem() {
-        climbMotorA = new SparkMax(c_climbMotorAPort, SparkLowLevel.MotorType.kBrushless);
-        climbMotorB = new SparkMax(c_climbMotorBPort, SparkLowLevel.MotorType.kBrushless);
+        climbMotor = new SparkMax(c_climbMotorPort, SparkLowLevel.MotorType.kBrushless);
+        //climbMotorB = new SparkMax(c_climbMotorBPort, SparkLowLevel.MotorType.kBrushless);
 
-        climbADiags = new motorDiagnostics(climbMotorA, "Shooter A");
-        climbBDiags = new motorDiagnostics(climbMotorB, "Shooter B");
+        climbDiags = new motorDiagnostics(climbMotor, "Climb Motor");
+        //climbBDiags = new motorDiagnostics(climbMotorB, "Shooter B");
 
 
         
-        m_ShooterAEncoder = climbMotorA.getEncoder();
-        m_ShooterBEncoder = climbMotorB.getEncoder();
+        m_climbEncoder = climbMotor.getEncoder();
+        //m_ShooterBEncoder = climbMotorB.getEncoder();
 
-        m_ShooterAPID =  new ProfiledPIDController(
-          Kp_shooterA,
-          Ki_shooterA,
-          Kd_shooterA,
+        m_climbPID =  new ProfiledPIDController(
+          Kp_climb,
+          Ki_climb,
+          Kd_climb,
           new TrapezoidProfile.Constraints(
-            Ks_shooterA,
-            Kv_shooterA));
-        m_ShooterAPID.setTolerance(1);
+            Ks_climb,
+            Kv_climb));
+        m_climbPID.setTolerance(1);
 
-        m_ShooterBPID =  new ProfiledPIDController(
+        /*m_ShooterBPID =  new ProfiledPIDController(
           Kp_shooterB,
           Ki_shooterB,
           Kd_shooterB,
@@ -104,32 +100,32 @@ public class climbSubsystem extends SubsystemBase {
           new TrapezoidProfile.Constraints(
             Ks_turnMotor,
             Kv_turnMotor));
-        m_turnMotorPID.setTolerance(.05);
+        m_turnMotorPID.setTolerance(.05);*/
         
     }
 
     @Override
     public void periodic() {
-        m_ShooterMotorASpeed   = m_ShooterAEncoder.getVelocity();
-        m_ShooterMotorBSpeed   = m_ShooterBEncoder.getVelocity();
+        m_climbMotorSpeed   = m_climbEncoder.getVelocity();
+        //m_ShooterMotorBSpeed   = m_ShooterBEncoder.getVelocity();
 
-        climbMotorA.set(MathUtil.clamp(m_ShooterAPID.calculate(m_ShooterMotorASpeed, m_desiredMotorASpeed),
-                                        -c_maxShooterASpeed,
-                                        c_maxShooterASpeed));    //need to check motor direction
-        climbMotorB.set(MathUtil.clamp(m_ShooterBPID.calculate(m_desiredMotorBSpeed, m_desiredMotorBSpeed),
-                                        -c_maxShooterBSpeed,
-                                        c_maxShooterBSpeed));
+        climbMotor.set(MathUtil.clamp(m_climbPID.calculate(m_climbMotorSpeed, m_desiredMotorSpeed),
+                                        -c_maxClimbSpeed,
+                                        c_maxClimbSpeed));    //need to check motor direction
+        //climbMotorB.set(MathUtil.clamp(m_ShooterBPID.calculate(m_desiredMotorBSpeed, m_desiredMotorBSpeed),
+        //                                -c_maxShooterBSpeed,
+        //                                c_maxShooterBSpeed));
                                         
        
         //Publish Stuff to Dashboard
-        SmartDashboard.putNumber("Shooter A Speed", m_ShooterMotorASpeed);
-        SmartDashboard.putNumber("Shooter B Speed", m_ShooterMotorBSpeed);
+        SmartDashboard.putNumber("Climb Motor Speed", m_climbMotorSpeed);
+        //SmartDashboard.putNumber("Shooter B Speed", m_ShooterMotorBSpeed);
 
-        SmartDashboard.putNumber("Desired Turn Angle", m_desiredAngle);
-        SmartDashboard.putNumber("Actual Turn Angle", m_turnAngle);
+        //SmartDashboard.putNumber("Desired Turn Angle", m_desiredAngle);
+        //SmartDashboard.putNumber("Actual Turn Angle", m_turnAngle);
 
-        climbADiags.publishMotorData();
-        climbBDiags.publishMotorData();
+        climbDiags.publishMotorData();
+        //climbBDiags.publishMotorData();
         
     }
 
@@ -141,47 +137,51 @@ public class climbSubsystem extends SubsystemBase {
             //TBD...
     }
 
-    public void setDesiredMotorASpeed(double speed) {
-        m_desiredMotorASpeed = MathUtil.clamp(speed, -c_ShooterMaxSpeed, c_ShooterMaxSpeed);
+    public void setDesiredClimbMotorSpeed(double speed) {
+        m_desiredMotorSpeed = MathUtil.clamp(speed, -c_maxClimbSpeed, c_maxClimbSpeed);
     }
 
-    public double getDesiredMotorASpeed() {
-        return m_desiredMotorASpeed;
+    public double getDesiredMotorSpeed() {
+        return m_desiredMotorSpeed;
     }
 
-    public void setDesiredMotorBSpeed(double speed) {
-        m_desiredMotorBSpeed = MathUtil.clamp(speed, -c_ShooterMaxSpeed, c_ShooterMaxSpeed);
-    }
+    //public void setDesiredMotorBSpeed(double speed) {
+    //    m_desiredMotorBSpeed = MathUtil.clamp(speed, -c_ShooterMaxSpeed, c_ShooterMaxSpeed);
+    //}
 
-    public double getDesiredMotorBSpeed() {
-        return m_desiredMotorBSpeed;
-    }
+    //public double getDesiredMotorBSpeed() {
+    //    return m_desiredMotorBSpeed;
+    //}
 
 
     // Public functions to all D-Pad to adjust the offset of the Elevator Height
-    public void incShooterASpeedOffset() {
-        o_MotorASpeedOffset = o_MotorASpeedOffset + c_speedOffsetIncrement;
+    public void incClimbSpeedOffset() {
+        o_MotorSpeedOffset = o_MotorSpeedOffset + c_speedOffsetIncrement;
     }
 
     public void decShooterASpeedOffset() {
-        o_MotorASpeedOffset = o_MotorASpeedOffset - c_speedOffsetIncrement;
+        o_MotorSpeedOffset = o_MotorSpeedOffset - c_speedOffsetIncrement;
     }
 
+    public boolean getClimbIsAtGoal () {
+    return m_climbPID.atGoal();
+}
+
         // Public functions to all D-Pad to adjust the offset of the Elevator Height
-    public void incShooterBSpeedOffset() {
+    /*public void incShooterBSpeedOffset() {
         o_MotorBSpeedOffset = o_MotorBSpeedOffset + c_speedOffsetIncrement;
     }
 
     public void decShooterBSpeedOffset() {
         o_MotorBSpeedOffset = o_MotorBSpeedOffset - c_speedOffsetIncrement;
-    }
+    }*/
 
     
     public void initDefaultCommand() {
         // When Idle, set the speeds to zero            
         Command initSequence = Commands.sequence(
-            new InstantCommand(() -> setDesiredMotorASpeed(3)),
-            new InstantCommand(() -> setDesiredMotorBSpeed(4)));
+            new InstantCommand(() -> setDesiredClimbMotorSpeed(3)));
+            //new InstantCommand(() -> setDesiredMotorBSpeed(4)));
         
         initSequence.addRequirements(this);
 

@@ -24,30 +24,30 @@ public class shooterSubsystem extends SubsystemBase {
 
     private SparkMax shooterMotorA;  
     private SparkMax shooterMotorB;
-    private SparkMax turnMotor;
+    //private SparkMax turnMotor;
 
     private motorDiagnostics shooterADiags;
     private motorDiagnostics shooterBDiags;
     
     private int shooterMotorAPort   = 25;
     private int shooterMotorBPort   = 24;
-    private int turnMotorPort       = 26;       //Not currently used... future
+    //private int turnMotorPort       = 26;       //Not currently used... future
 
-    private DutyCycleEncoder m_turnEncoder;
-    private int turnEncoderPort = 5;
+    //private DutyCycleEncoder m_turnEncoder;
+    //private int turnEncoderPort = 5;
     //private static final double c_TurnEncoderOffset = 0;  //note that we can just use the raw angle?
 
     private static final double c_ShooterMaxSpeed = 5000;
-    private static final double c_TurnMinAngle = 0;
-    private static final double c_TurnMaxAngle = 0;
+    //private static final double c_TurnMinAngle = 0;
+    //private static final double c_TurnMaxAngle = 0;
     
     private double m_ShooterMotorASpeed = 1;
     private double m_ShooterMotorBSpeed = 2;
-    private double m_turnAngle = 0;
+    //private double m_turnAngle = 0;
 
     private double m_desiredMotorASpeed = 0;
     private double m_desiredMotorBSpeed = 0;
-    private double m_desiredAngle = 0;
+    //private double m_desiredAngle = 0;
 
     private double o_MotorASpeedOffset = 0;
     private double o_MotorBSpeedOffset = 0;
@@ -55,7 +55,7 @@ public class shooterSubsystem extends SubsystemBase {
     private static final double c_maxShooterASpeed  = 1;
     private static final double c_minShooterASpeed  = 0.1;
     private static final double c_shooterBSpeed  = .7;
-    private static final double c_maxTurnSpeed      = 1;
+    //private static final double c_maxTurnSpeed      = 1;
 
     private static final double c_speedOffsetIncrement = .05;
 
@@ -64,7 +64,7 @@ public class shooterSubsystem extends SubsystemBase {
 
     private ProfiledPIDController m_ShooterAPID;
     private ProfiledPIDController m_ShooterBPID;
-    private ProfiledPIDController m_turnMotorPID;
+    //private ProfiledPIDController m_turnMotorPID;
     private final SimpleMotorFeedforward m_shooterFeedForward = new SimpleMotorFeedforward(0.5,0);
         private static final double Kp_shooterA = .00025;
         private static final double Ki_shooterA = 0;
@@ -76,11 +76,11 @@ public class shooterSubsystem extends SubsystemBase {
         private static final double Kd_shooterB = 0;
         private static final double Kv_shooterB = 0;
         private static final double Ks_shooterB = 0;
-        private static final double Kp_turnMotor = .1;
-        private static final double Ki_turnMotor = 0;
-        private static final double Kd_turnMotor = 0;
-        private static final double Kv_turnMotor = 0;
-        private static final double Ks_turnMotor = 0;
+      // private static final double Kp_turnMotor = .1;
+       // private static final double Ki_turnMotor = 0;
+        //private static final double Kd_turnMotor = 0;
+        //private static final double Kv_turnMotor = 0;
+        //private static final double Ks_turnMotor = 0;
 
     public shooterSubsystem() {
         shooterMotorA = new SparkMax(shooterMotorAPort, SparkLowLevel.MotorType.kBrushless);
@@ -90,12 +90,12 @@ public class shooterSubsystem extends SubsystemBase {
         shooterBDiags = new motorDiagnostics(shooterMotorB, "Shooter B");
 
 
-        turnMotor = new SparkMax(turnMotorPort, SparkLowLevel.MotorType.kBrushless);
+        //turnMotor = new SparkMax(turnMotorPort, SparkLowLevel.MotorType.kBrushless);
         SparkMaxConfig tiltConfig = new SparkMaxConfig();
             tiltConfig.idleMode(IdleMode.kBrake);
-        turnMotor.configure(tiltConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        //turnMotor.configure(tiltConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-        m_turnEncoder = new DutyCycleEncoder(turnEncoderPort);
+        //m_turnEncoder = new DutyCycleEncoder(turnEncoderPort);
         m_ShooterAEncoder = shooterMotorA.getEncoder();
         m_ShooterBEncoder = shooterMotorB.getEncoder();
 
@@ -117,14 +117,14 @@ public class shooterSubsystem extends SubsystemBase {
             Kv_shooterB));
         m_ShooterBPID.setTolerance(1);
     
-        m_turnMotorPID =  new ProfiledPIDController(
+        /*m_turnMotorPID =  new ProfiledPIDController(
           Kp_turnMotor,
           Ki_turnMotor,
           Kd_turnMotor,
           new TrapezoidProfile.Constraints(
             Ks_turnMotor,
             Kv_turnMotor));
-        m_turnMotorPID.setTolerance(.05);
+        m_turnMotorPID.setTolerance(.05);*/
         
     }
 
@@ -132,7 +132,7 @@ public class shooterSubsystem extends SubsystemBase {
     public void periodic() {
         m_ShooterMotorASpeed   = m_ShooterAEncoder.getVelocity();
         m_ShooterMotorBSpeed   = m_ShooterBEncoder.getVelocity();
-        m_turnAngle = m_turnEncoder.get();
+        //m_turnAngle = m_turnEncoder.get();
         final double shooterFeedForward = m_shooterFeedForward.calculate(m_desiredMotorASpeed);
 
 
@@ -159,9 +159,9 @@ public class shooterSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Shooter A Offset", o_MotorASpeedOffset);
         SmartDashboard.putNumber("Shooter B Offset", o_MotorBSpeedOffset);
 
-        SmartDashboard.putNumber("Turn Motor Speed", turnMotor.get());
-        SmartDashboard.putNumber("Desired Turn Angle", m_desiredAngle);
-        SmartDashboard.putNumber("Actual Turn Angle", m_turnAngle);
+        //SmartDashboard.putNumber("Turn Motor Speed", turnMotor.get());
+        //SmartDashboard.putNumber("Desired Turn Angle", m_desiredAngle);
+        //SmartDashboard.putNumber("Actual Turn Angle", m_turnAngle);
 
         shooterADiags.publishMotorData();
         shooterBDiags.publishMotorData();
@@ -198,19 +198,17 @@ public class shooterSubsystem extends SubsystemBase {
     /**
      *@param angle Angle in radians
      */
-    public void setDesiredTurnAngle(double angle) {
-        m_desiredAngle = MathUtil.clamp(angle,c_TurnMinAngle,c_TurnMaxAngle);
-    }
+    //public void setDesiredTurnAngle(double angle) {
+        //m_desiredAngle = MathUtil.clamp(angle,c_TurnMinAngle,c_TurnMaxAngle);
+    //}
 
-    public double getDesiredTurnAngle() {
-        return m_desiredAngle;
-    }
+    //public double getDesiredTurnAngle() {
+        //return m_desiredAngle;
+    //}
 
-    public double getActualTurnAngle() {
-        return m_turnAngle;
-    }
-      
-
+    //public double getActualTurnAngle() {
+        //return m_turnAngle;
+    //}
     // Public functions to all D-Pad to adjust the offset of the Elevator Height
     public void incShooterASpeedOffset() {
         o_MotorASpeedOffset = o_MotorASpeedOffset + c_speedOffsetIncrement;

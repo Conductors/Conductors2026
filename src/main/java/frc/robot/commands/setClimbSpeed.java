@@ -1,24 +1,25 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.shooterSubsystem;
+import frc.robot.subsystems.climbSubsystem;
 
-public class setShooterAngle extends Command {
+public class setClimbSpeed extends Command {
 
-  
-  private shooterSubsystem m_ShooterSubsystem;
-  //private double m_AngleCommand = 0;
+    private climbSubsystem m_ClimbSubsystem;
+    private double m_speedCmd = 0;
+
 
   /**
    *Creates a new DriveDistance
    * @param speed The desired speed for the shooter Subsystem
    * @param cs The coralSubsystem subsystem to control
+   * @param useDist Ignore speed input, calculate the speed based on Distance (boolean)
   */
-  //public setShooterAngle(double angle, shooterSubsystem ss) {
-    //m_AngleCommand = angle;
-    //m_ShooterSubsystem = ss;
-    //addRequirements(m_ShooterSubsystem);
-  //}
+  public setClimbSpeed(double speed, climbSubsystem cs) {
+    m_speedCmd = speed;
+    m_ClimbSubsystem = cs;
+    addRequirements(m_ClimbSubsystem);
+  }
 
   @Override
   public void initialize() {
@@ -29,7 +30,8 @@ public class setShooterAngle extends Command {
   @Override
   public void execute() {
     //run repeatedly, until isFinished() returns true
-    //m_ShooterSubsystem.setDesiredTurnAngle(m_AngleCommand);
+    m_ClimbSubsystem.setDesiredClimbMotorSpeed(m_speedCmd);
+    
   }
 
   @Override
@@ -41,7 +43,8 @@ public class setShooterAngle extends Command {
   @Override
   public boolean isFinished() {
     // Determines when to finish the command, return true always for speed commands
-    return true;   
+    return m_ClimbSubsystem.getClimbIsAtGoal();
   }
-  
+
 }
+

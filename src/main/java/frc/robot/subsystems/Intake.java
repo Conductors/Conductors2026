@@ -19,7 +19,7 @@ import frc.motorDiagnostics;
 public class intake extends SubsystemBase {
   
   /* Intake Subsystem Constants */
-  public static final int k_slideMotorPortA = 30;
+  public static final int k_slideMotorPortA = 26;
   //public static final int k_slideMotorPortB = 31;
   public static final int k_intakeMotorPortA = 32;
   //public static final int k_intakeMotorPortB = 33;
@@ -137,7 +137,6 @@ public class intake extends SubsystemBase {
     SmartDashboard.putNumber("IntakeSpeed", m_desiredIntakeSpeed);
     SmartDashboard.putNumber("slideAngleOffsetA", slideAngleOffsetA);
     SmartDashboard.putNumber("slideAActualSpeed", m_actualIntakeSpeed);
-
     intakeDiags.publishMotorData();
 
     //SmartDashboard.putNumber("slideAngleOffsetB", slideAngleOffsetB);

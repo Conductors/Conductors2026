@@ -1,6 +1,7 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Constants;
 import frc.robot.subsystems.intake;
 
 public class extendIntake extends Command {
@@ -31,8 +32,8 @@ public class extendIntake extends Command {
   @Override
   public void initialize() {
     //Run once, at the start of the command
-    if (extend = true) {
-        m_speedCmd = 0.5;
+    if (extend == true) {
+        m_speedCmd = Constants.kSlideSpeed;
     } else {
         m_speedCmd = 0;
     }
