@@ -13,16 +13,10 @@ public class retractIntake extends Command{
     
 
   /**
-   *Creates a new Extend Intake command
+   *Creates a new Retract Intake command
    * @param is The intake subsystem to control
-   * @param reverse Indicates whether to extend (false) or retract (true)
+   * @param retracted Indicates whether to extend (false) or retract (true)
   */
-  /*public slideIntake(boolean extend, intake is) {
-    m_intakeSubsystem = is;
-    m_commandExtend = extend;
-    addRequirements(m_intakeSubsystem);
-  }*/
-
   public retractIntake(boolean retracted, intake is) {
     m_intakeSubsystem = is;
     retract = retracted;
@@ -48,7 +42,7 @@ public class retractIntake extends Command{
     } else {
         m_intakeSubsystem.retract();
     }*/
-    m_intakeSubsystem.setDesiredMotorASpeed(m_speedCmd);
+    m_intakeSubsystem.setDesiredSlideSpeed(m_speedCmd);
     }
 
   @Override

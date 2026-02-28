@@ -1,8 +1,6 @@
 package frc.robot.subsystems;
 
-import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkLowLevel;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
@@ -11,14 +9,12 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.motorDiagnostics;
-import frc.robot.Constants;
 
 public class shooterSubsystem extends SubsystemBase {
 
@@ -57,7 +53,7 @@ public class shooterSubsystem extends SubsystemBase {
     private static final double c_shooterBSpeed  = .7;
     //private static final double c_maxTurnSpeed      = 1;
 
-    private static final double c_speedOffsetIncrement = .05;
+    private static final double c_speedOffsetIncrement = 50;
 
     private RelativeEncoder m_ShooterAEncoder;
     private RelativeEncoder m_ShooterBEncoder;
@@ -142,14 +138,7 @@ public class shooterSubsystem extends SubsystemBase {
         
         shooterMotorB.set(m_desiredMotorBSpeed);
             
-        //MathUtil.clamp(m_ShooterBPID.calculate(m_desiredMotorBSpeed, m_desiredMotorBSpeed),
-        //                                -c_maxShooterBSpeed,
-        //                                c_maxShooterBSpeed));
-                                        
-        /*turnMotor.set(-MathUtil.clamp(m_turnMotorPID.calculate(m_turnAngle, m_desiredAngle),
-                                        -c_maxTurnSpeed,
-                                        c_maxTurnSpeed));
-        */
+
 
         //Publish Stuff to Dashboard
         SmartDashboard.putNumber("Desired ShooterA Speed", m_desiredMotorASpeed);
@@ -158,10 +147,6 @@ public class shooterSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Shooter B Speed", m_ShooterMotorBSpeed);
         SmartDashboard.putNumber("Shooter A Offset", o_MotorASpeedOffset);
         SmartDashboard.putNumber("Shooter B Offset", o_MotorBSpeedOffset);
-
-        //SmartDashboard.putNumber("Turn Motor Speed", turnMotor.get());
-        //SmartDashboard.putNumber("Desired Turn Angle", m_desiredAngle);
-        //SmartDashboard.putNumber("Actual Turn Angle", m_turnAngle);
 
         shooterADiags.publishMotorData();
         shooterBDiags.publishMotorData();
@@ -195,20 +180,6 @@ public class shooterSubsystem extends SubsystemBase {
         return m_desiredMotorBSpeed;
     }
 
-    /**
-     *@param angle Angle in radians
-     */
-    //public void setDesiredTurnAngle(double angle) {
-        //m_desiredAngle = MathUtil.clamp(angle,c_TurnMinAngle,c_TurnMaxAngle);
-    //}
-
-    //public double getDesiredTurnAngle() {
-        //return m_desiredAngle;
-    //}
-
-    //public double getActualTurnAngle() {
-        //return m_turnAngle;
-    //}
     // Public functions to all D-Pad to adjust the offset of the Elevator Height
     public void incShooterASpeedOffset() {
         o_MotorASpeedOffset = o_MotorASpeedOffset + c_speedOffsetIncrement;
@@ -218,7 +189,7 @@ public class shooterSubsystem extends SubsystemBase {
         o_MotorASpeedOffset = o_MotorASpeedOffset - c_speedOffsetIncrement;
     }
 
-        // Public functions to all D-Pad to adjust the offset of the Elevator Height
+    // Public functions to all D-Pad to adjust the offset of the Elevator Height
     public void incShooterBSpeedOffset() {
         o_MotorBSpeedOffset = o_MotorBSpeedOffset + c_speedOffsetIncrement;
     }
@@ -226,9 +197,11 @@ public class shooterSubsystem extends SubsystemBase {
     public void decShooterBSpeedOffset() {
         o_MotorBSpeedOffset = o_MotorBSpeedOffset - c_speedOffsetIncrement;
     }
-public boolean getShoterAIsAtGoal () {
-    return m_ShooterAPID.atGoal();
-}
+
+    public boolean getShoterAIsAtGoal () {
+        return m_ShooterAPID.atGoal();
+    }
+
     /**
      * 
      * @param dist The distance from the camera, in meters
@@ -239,7 +212,6 @@ public boolean getShoterAIsAtGoal () {
 
         setSpeed = dist;      //Change this for different distances (calibration logic only)
 
-    
         return setSpeed;
     }
     

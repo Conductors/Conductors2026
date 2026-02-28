@@ -44,7 +44,7 @@ public final class Constants {
     //public static final double kBR_TurnEncoderOffset = 0.892 - 0.125;   //Little TIRE
     public static final double kBR_TurnEncoderOffset = 0.658 - 0.125;   //Big TIRE
 
-    public static final double kSlideSpeed = 0.1;
+    public static final double kSlideSpeed = 0.3;
 
 
 

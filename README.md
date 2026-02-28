@@ -34,6 +34,11 @@ Autos:
     2) #1 + climb
 
 
+.5		
+1.0		2600
+1.5		3000
+2.0		4000
+
 
 Wish List:
     LEDs signalling aligned

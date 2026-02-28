@@ -5,10 +5,13 @@
 package frc.robot;
 
 import java.util.function.BooleanSupplier;
+
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.net.PortForwarder;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -118,6 +121,7 @@ public class Robot extends TimedRobot {
 
 public Robot() {
   //CameraServer.startAutomaticCapture();
+  //PortForwarder.add(5801, "172.28.0.1", 5801);
 }
 
   @Override
@@ -151,8 +155,8 @@ public Robot() {
     //        .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
 
 
-    //povUp.onTrue(new InstantCommand(() -> m_ShooterSubsystem.incShooterASpeedOffset()));
-    //povDown.onTrue(new InstantCommand(() -> m_ShooterSubsystem.decShooterASpeedOffset()));
+    povUp.onTrue(new InstantCommand(() -> m_ShooterSubsystem.incShooterASpeedOffset()));
+    povDown.onTrue(new InstantCommand(() -> m_ShooterSubsystem.decShooterASpeedOffset()));
     povLeft.onTrue(new InstantCommand(() -> m_intake.incIntakeSlideOffset()));
     povRight.onTrue(new InstantCommand(() -> m_intake.decIntakeSlideOffset()));
 
@@ -162,7 +166,7 @@ public Robot() {
      //extend
     redOne.onTrue(new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake));
     redOne.onFalse(new intakeFuelCmd(0, m_intake));
-    yellowOne.onTrue(new setShooterSpeed(Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
+    yellowOne.onTrue(new setShooterSpeed(-Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
               .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
 
     greenOne.onTrue(new climberCommand(climbLevel.e_levelOne, m_climbSubsystem));  
@@ -175,7 +179,7 @@ public Robot() {
             .onFalse(new intakeFuelCmd(0, m_intake));
 
           
-    yellowTwo.onTrue(new setShooterSpeed(-Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
+    yellowTwo.onTrue(new setShooterSpeed(Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
               .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
     greenTwo.onTrue(new climberCommand(climbLevel.e_floor, m_climbSubsystem));  
     //blueTwo.onTrue(new climberCommand(climbLevel.e_levelOne, m_climbSubsystem));
@@ -190,7 +194,6 @@ public Robot() {
     // and running subsystem periodic() methods.  This must be called from the robot's periodic
     // block in order for anything in the Command-based framework to work.
     CommandScheduler.getInstance().run();
-
     SmartDashboard.putData("Auto Choices", m_AutoChooser);  //Sync the Autochooser
     SmartDashboard.putNumber("Match Time", DriverStation.getMatchTime());
     SmartDashboard.putData("Command Scheduler", CommandScheduler.getInstance());

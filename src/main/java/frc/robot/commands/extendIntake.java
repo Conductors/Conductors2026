@@ -48,7 +48,7 @@ public class extendIntake extends Command {
     } else {
         m_intakeSubsystem.retract();
     }*/
-    m_intakeSubsystem.setDesiredMotorASpeed(m_speedCmd);
+    m_intakeSubsystem.setDesiredSlideSpeed(m_speedCmd);
     }
 
   @Override
