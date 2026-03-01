@@ -47,14 +47,19 @@ public class setShooterSpeed extends Command {
   public void execute() {
     //run repeatedly, until isFinished() returns true
     m_ShooterSubsystem.setDesiredMotorASpeed(m_speedCmd);
-    m_ShooterSubsystem.setDesiredMotorBSpeed(m_speedCmd);
+    
     
   }
 
   @Override
   public void end(boolean interrupted) {
     //Run once, at the end of the command
-    
+
+    /* Steve changed this 2/28 - theory is that ShooterA will PID up to set speed, 
+    and when it's at goal, this END function will trigger B motor to start.  Moved
+    the motor B speed command to the end() function (previously in  execute() )
+    */
+    m_ShooterSubsystem.setDesiredMotorBSpeed(m_speedCmd);   
   }
 
   @Override

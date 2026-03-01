@@ -121,11 +121,13 @@ public class Robot extends TimedRobot {
 
 public Robot() {
   //CameraServer.startAutomaticCapture();
-  //PortForwarder.add(5801, "172.28.0.1", 5801);
+  
 }
 
   @Override
   public void robotInit() {
+    LimelightHelpers.setupPortForwardingUSB(0); //Port Forwarding for 2026 Limelight 3a
+
     m_AutoChooser.setDefaultOption("None", Constants.AutoConstants.kAutoProgram[0]);
     m_AutoChooser.addOption("Auto 1", Constants.AutoConstants.kAutoProgram[1]);
     m_AutoChooser.addOption("Auto 2", Constants.AutoConstants.kAutoProgram[2]);

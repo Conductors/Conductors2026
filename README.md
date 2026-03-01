@@ -1,44 +1,15 @@
 2026 Ben Davis Conductors Team 4580
 
-To Do:
-Software Structures (commands & subsystems)
+<u> For Tuesday 3/3 <u>
+1) Upgrade Limelights to 2026 OS version (hardware client)
+2) Create a delay functionality for shooter commands - activate Shooter A first, then B
+3) Update the distance function
 
-Intake
-    Deploy
-    Retract
-    Intake Fuel
-    Reverse Fuel
-
-Shooter
-    Shoot (out)
-    Reverse Shoot (in) - for jams or...?
-    Turn Turret (tbd)
-
-Climb
-    Climb
-    Descend
-
-
-Need Robot to:
-    Find distance to April Tag
-
-Characterization
-    Motors/Ports/Encoders
-    PID Controls (Drivetrain)
-    Arc of fuel per shooter speed
-    Consistency of speed
-    Distance from HUB
-
-Autos:
-    1) Back Up, shoot fuel
-    2) #1 + climb
-
-
-.5		
+Dist.   rpm for shooter	
 1.0		2600
 1.5		3000
 2.0		4000
-
+y = 1200*x^2 -2200*x + 3600     //this is the equation that fits the data above
 
 Wish List:
     LEDs signalling aligned
