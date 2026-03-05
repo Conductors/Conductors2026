@@ -131,7 +131,6 @@ public class shooterSubsystem extends SubsystemBase {
         //m_turnAngle = m_turnEncoder.get();
         final double shooterFeedForward = m_shooterFeedForward.calculate(m_desiredMotorASpeed);
 
-
         shooterMotorA.set(shooterFeedForward + MathUtil.clamp(m_ShooterAPID.calculate(m_ShooterMotorASpeed, m_desiredMotorASpeed),
                                         -c_maxShooterASpeed,
                                         c_maxShooterASpeed));    //need to check motor direction

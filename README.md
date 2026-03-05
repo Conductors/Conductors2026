@@ -4,6 +4,7 @@
 1) Upgrade Limelights to 2026 OS version (hardware client)
 2) Create a delay functionality for shooter commands - activate Shooter A first, then B
 3) Update the distance function
+4} y=381.81818x^{2}+205.45455x+1963.63636 -- code in distance equation 
 
 Dist.   rpm for shooter	
 1.0		2600
