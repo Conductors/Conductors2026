@@ -1,5 +1,6 @@
 package frc.robot.commands;
 
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.shooterSubsystem;
 
@@ -10,6 +11,8 @@ public class setShooterSpeed extends Command {
   private double m_speedCmd = 0;
   private boolean m_useDistance = false;
   private double m_distanceFromTag;
+  private Timer m_delayTimer;
+  private double c_MotorBDelay = 1.5;
 
 
   /**
@@ -22,6 +25,7 @@ public class setShooterSpeed extends Command {
     m_speedCmd = speed;
     m_ShooterSubsystem = ss;
     m_useDistance = false;
+    m_delayTimer = new Timer();
     addRequirements(m_ShooterSubsystem);
   }
 
@@ -30,6 +34,7 @@ public class setShooterSpeed extends Command {
     m_ShooterSubsystem = ss;
     m_useDistance = true;
     m_distanceFromTag = dist;
+    m_delayTimer = new Timer();
     addRequirements(m_ShooterSubsystem);
   }
 
@@ -39,7 +44,8 @@ public class setShooterSpeed extends Command {
     if(m_useDistance)
       m_speedCmd = m_ShooterSubsystem.calcSpeed(m_distanceFromTag);
 
-    
+    m_delayTimer.reset();
+    m_delayTimer.start();
 
   }
 
@@ -47,6 +53,9 @@ public class setShooterSpeed extends Command {
   public void execute() {
     //run repeatedly, until isFinished() returns true
     m_ShooterSubsystem.setDesiredMotorASpeed(m_speedCmd);
+    System.out.print("execute:Des = "+ m_speedCmd + ", " );
+    System.out.println("execute:MotorASpeed"+m_ShooterSubsystem.getMotorASpeed());
+    
     
     
   }
@@ -60,12 +69,18 @@ public class setShooterSpeed extends Command {
     the motor B speed command to the end() function (previously in  execute() )
     */
     m_ShooterSubsystem.setDesiredMotorBSpeed(m_speedCmd);   
+    System.out.println("end Motor B commanded");
+
+    m_delayTimer.stop();
+    m_delayTimer.reset();
+
   }
 
   @Override
   public boolean isFinished() {
     // Determines when to finish the command, return true always for speed commands
-    return m_ShooterSubsystem.getShoterAIsAtGoal();   
+    boolean rv = (m_delayTimer.get() > c_MotorBDelay);
+    return rv;
   }
 
 }

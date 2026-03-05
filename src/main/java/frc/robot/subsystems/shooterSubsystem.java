@@ -20,43 +20,39 @@ public class shooterSubsystem extends SubsystemBase {
 
     private SparkMax shooterMotorA;  
     private SparkMax shooterMotorB;
-    //private SparkMax turnMotor;
+    private SparkMax conveyorMotor;
 
     private motorDiagnostics shooterADiags;
     private motorDiagnostics shooterBDiags;
+    private motorDiagnostics conveyorDiags;
     
     private int shooterMotorAPort   = 25;
     private int shooterMotorBPort   = 24;
-    //private int turnMotorPort       = 26;       //Not currently used... future
-
-    //private DutyCycleEncoder m_turnEncoder;
-    //private int turnEncoderPort = 5;
-    //private static final double c_TurnEncoderOffset = 0;  //note that we can just use the raw angle?
+    private int conveyorMotorPort  = 30; 
 
     private static final double c_ShooterMaxSpeed = 5000;
-    //private static final double c_TurnMinAngle = 0;
-    //private static final double c_TurnMaxAngle = 0;
-    
-    private double m_ShooterMotorASpeed = 1;
-    private double m_ShooterMotorBSpeed = 2;
-    //private double m_turnAngle = 0;
 
+    private double m_ShooterMotorASpeed = 0;
+    private double m_ShooterMotorBSpeed = 0;
+    private double m_ConveyorMotorSpeed = 0;
+    
     private double m_desiredMotorASpeed = 0;
     private double m_desiredMotorBSpeed = 0;
-    //private double m_desiredAngle = 0;
-
+    private double m_desiredConveyorSpeed = 0;
+    
     private double o_MotorASpeedOffset = 0;
     private double o_MotorBSpeedOffset = 0;
 
     private static final double c_maxShooterASpeed  = 1;
     private static final double c_minShooterASpeed  = 0.1;
     private static final double c_shooterBSpeed  = .7;
-    //private static final double c_maxTurnSpeed      = 1;
+    private static final double c_conveyorSpeed  = .2;
 
     private static final double c_speedOffsetIncrement = 50;
 
     private RelativeEncoder m_ShooterAEncoder;
     private RelativeEncoder m_ShooterBEncoder;
+    private RelativeEncoder m_ConveyorEncoder;
 
     private ProfiledPIDController m_ShooterAPID;
     private ProfiledPIDController m_ShooterBPID;
@@ -81,19 +77,17 @@ public class shooterSubsystem extends SubsystemBase {
     public shooterSubsystem() {
         shooterMotorA = new SparkMax(shooterMotorAPort, SparkLowLevel.MotorType.kBrushless);
         shooterMotorB = new SparkMax(shooterMotorBPort, SparkLowLevel.MotorType.kBrushless);
+        conveyorMotor = new SparkMax(conveyorMotorPort, SparkLowLevel.MotorType.kBrushless);
 
         shooterADiags = new motorDiagnostics(shooterMotorA, "Shooter A");
         shooterBDiags = new motorDiagnostics(shooterMotorB, "Shooter B");
+        conveyorDiags = new motorDiagnostics(conveyorMotor, "Conveyor");
 
-
-        //turnMotor = new SparkMax(turnMotorPort, SparkLowLevel.MotorType.kBrushless);
-        SparkMaxConfig tiltConfig = new SparkMaxConfig();
-            tiltConfig.idleMode(IdleMode.kBrake);
-        //turnMotor.configure(tiltConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         //m_turnEncoder = new DutyCycleEncoder(turnEncoderPort);
         m_ShooterAEncoder = shooterMotorA.getEncoder();
         m_ShooterBEncoder = shooterMotorB.getEncoder();
+        m_ConveyorEncoder = conveyorMotor.getEncoder();
 
         m_ShooterAPID =  new ProfiledPIDController(
           Kp_shooterA,
@@ -128,7 +122,8 @@ public class shooterSubsystem extends SubsystemBase {
     public void periodic() {
         m_ShooterMotorASpeed   = m_ShooterAEncoder.getVelocity();
         m_ShooterMotorBSpeed   = m_ShooterBEncoder.getVelocity();
-        //m_turnAngle = m_turnEncoder.get();
+        m_ConveyorMotorSpeed   = m_ConveyorEncoder.getVelocity();
+
         final double shooterFeedForward = m_shooterFeedForward.calculate(m_desiredMotorASpeed);
 
         shooterMotorA.set(shooterFeedForward + MathUtil.clamp(m_ShooterAPID.calculate(m_ShooterMotorASpeed, m_desiredMotorASpeed),
@@ -136,19 +131,22 @@ public class shooterSubsystem extends SubsystemBase {
                                         c_maxShooterASpeed));    //need to check motor direction
         
         shooterMotorB.set(m_desiredMotorBSpeed);
+        conveyorMotor.set(m_desiredConveyorSpeed);
             
-
 
         //Publish Stuff to Dashboard
         SmartDashboard.putNumber("Desired ShooterA Speed", m_desiredMotorASpeed);
         SmartDashboard.putNumber("Desired ShooterB Speed", m_desiredMotorBSpeed);
+        SmartDashboard.putNumber("Desired Conveyor Speed", m_desiredConveyorSpeed);
         SmartDashboard.putNumber("Shooter A Speed", m_ShooterMotorASpeed);
         SmartDashboard.putNumber("Shooter B Speed", m_ShooterMotorBSpeed);
         SmartDashboard.putNumber("Shooter A Offset", o_MotorASpeedOffset);
         SmartDashboard.putNumber("Shooter B Offset", o_MotorBSpeedOffset);
+        SmartDashboard.putNumber("Conveyor Speed", m_ConveyorMotorSpeed);
 
         shooterADiags.publishMotorData();
         shooterBDiags.publishMotorData();
+        conveyorDiags.publishMotorData();
         
     }
 
@@ -168,15 +166,34 @@ public class shooterSubsystem extends SubsystemBase {
     public void setDesiredMotorBSpeed(double speed) {
         if(speed == 0) {
             m_desiredMotorBSpeed = 0;
+            m_desiredConveyorSpeed = 0;
         } else if(speed > 0) {
             m_desiredMotorBSpeed = c_shooterBSpeed;
+            m_desiredConveyorSpeed = c_conveyorSpeed;
         } else if(speed < 0) {
             m_desiredMotorBSpeed = -c_shooterBSpeed;
+            m_desiredConveyorSpeed = -c_conveyorSpeed;
         }
     }
 
     public double getDesiredMotorBSpeed() {
         return m_desiredMotorBSpeed;
+    }
+
+    public double getDesiredConveyorSpeed() {
+        return m_desiredConveyorSpeed;
+    }
+
+    public double getMotorASpeed() {
+        return m_ShooterMotorASpeed;
+    }
+
+    public double getMotorBSpeed() {
+        return m_ShooterMotorBSpeed;
+    }
+
+    public double getConveyorSpeed() {
+        return m_ConveyorMotorSpeed;
     }
 
     // Public functions to all D-Pad to adjust the offset of the Elevator Height
