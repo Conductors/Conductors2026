@@ -168,9 +168,10 @@ public Robot() {
      //extend
     redOne.onTrue(new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake));
     redOne.onFalse(new intakeFuelCmd(0, m_intake));
-    yellowOne.onTrue(new setShooterSpeed(-Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
+    //yellowOne.onTrue(new setShooterSpeed(-Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
+              //.onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
+    yellowOne.onTrue(new setShooterSpeed(m_ShooterSubsystem, true, distToCamera))
               .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
-
     greenOne.onTrue(new climberCommand(climbLevel.e_levelOne, m_climbSubsystem));  
     //blueOne.onTrue(new climberCommand(climbLevel.e_levelTwo, m_climbSubsystem));
     blueOne.onTrue(new setClimbSpeed(0.6, m_climbSubsystem));

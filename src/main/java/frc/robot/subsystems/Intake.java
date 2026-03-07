@@ -18,7 +18,7 @@ public class intake extends SubsystemBase {
   /* Intake Subsystem Constants */
   public static final int k_slideMotorPortA = 26;
   public static final int k_intakeMotorPortA = 32;
-  public static final double k_slideEncOffsetA = 0;
+  //public static final double k_slideEncOffsetA = 0;
 
   public static final double k_slideMax = 1000;   //prevent the slide going out past this point
   public static final double k_slideMin = 0;      //prevent the slide going in past this point (assume starting pos=0)
@@ -46,7 +46,8 @@ public class intake extends SubsystemBase {
   private RelativeEncoder m_slideEncoderA;
   private double m_slidePosition;
   private double m_slideOffset = 0;
-
+  private boolean m_slideFullRetracted = false;
+  private final double c_slideStowPos = 100;
       
   
 
@@ -77,23 +78,18 @@ public class intake extends SubsystemBase {
   public void periodic() {
     m_slidePosition = m_slideEncoderA.getPosition();    //gets raw position from Slide Encoder
     
-
     m_actualIntakeSpeed = intakeMotorA.get();
 
-    //final double intakeFeedForward = m_intakeFeedForward.calculate(m_desiredIntakeSpeed);
-
-    
+    m_slideFullRetracted = (m_slidePosition < c_slideStowPos );
 
     //Publish Stuff to the Dashboard
     SmartDashboard.putNumber("IntakeSpeed", m_desiredIntakeSpeed);
     SmartDashboard.putNumber("slideAActualSpeed", m_actualIntakeSpeed);
     intakeDiags.publishMotorData();
-
-
-    //SmartDashboard.putNumber("slideMotorACurrent", slideMotorA.getOutputCurrent());
     SmartDashboard.putNumber("desiredSlideMotorspeed", m_desiredSlideSpeed);
     SmartDashboard.putNumber("slidePosition", m_slidePosition);
     SmartDashboard.putNumber("slidePosOffset", m_slideOffset);
+    SmartDashboard.putBoolean("SlideFullyIn?", m_slideFullRetracted);
     slideDiags.publishMotorData();
 
     intakeMotorA.set(m_desiredIntakeSpeed);            

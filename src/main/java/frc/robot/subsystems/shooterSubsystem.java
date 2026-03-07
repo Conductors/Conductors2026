@@ -207,10 +207,10 @@ public class shooterSubsystem extends SubsystemBase {
      * @return The Shooter A Motor speeds (in rpm) appropriate for a given distance
      */
     public double calcSpeed(double dist) {
-        double setSpeed = c_minShooterASpeed;        //defaults to min speed
+        //double setSpeed = c_minShooterASpeed;        //defaults to min speed
 
-        setSpeed = dist;      //Change this for different distances (calibration logic only)
-
+        //setSpeed = dist;      //Change this for different distances (calibration logic only)
+        double setSpeed = 1200*dist*dist - 2200*dist + 3600;
         return setSpeed;
     }
     

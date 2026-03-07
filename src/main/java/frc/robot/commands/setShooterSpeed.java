@@ -25,7 +25,7 @@ public class setShooterSpeed extends Command {
     addRequirements(m_ShooterSubsystem);
   }
 
-  public setShooterSpeed(shooterSubsystem ss, boolean useDistance, double dist ) {
+  public setShooterSpeed(shooterSubsystem ss, boolean useDistance, double dist) {
     m_speedCmd = 0;
     m_ShooterSubsystem = ss;
     m_useDistance = true;
@@ -46,7 +46,7 @@ public class setShooterSpeed extends Command {
   @Override
   public void execute() {
     //run repeatedly, until isFinished() returns true
-    m_ShooterSubsystem.setDesiredMotorASpeed(m_speedCmd);
+    m_ShooterSubsystem.setDesiredMotorASpeed(-m_speedCmd);
     
     
   }
