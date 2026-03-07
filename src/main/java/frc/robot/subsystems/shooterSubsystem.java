@@ -3,8 +3,6 @@ package frc.robot.subsystems;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkLowLevel;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -41,12 +39,10 @@ public class shooterSubsystem extends SubsystemBase {
     private double m_desiredConveyorSpeed = 0;
     
     private double o_MotorASpeedOffset = 0;
-    private double o_MotorBSpeedOffset = 0;
-
-    private static final double c_maxShooterASpeed  = 1;
-    private static final double c_minShooterASpeed  = 0.1;
+    
+    private static final double c_maxShooterACmd  = 1;
     private static final double c_shooterBSpeed  = .7;
-    private static final double c_conveyorSpeed  = .5;//.2;
+    private static final double c_conveyorSpeed  = .5;
 
     private static final double c_speedOffsetIncrement = 50;
 
@@ -55,24 +51,13 @@ public class shooterSubsystem extends SubsystemBase {
     private RelativeEncoder m_ConveyorEncoder;
 
     private ProfiledPIDController m_ShooterAPID;
-    private ProfiledPIDController m_ShooterBPID;
-    //private ProfiledPIDController m_turnMotorPID;
+    
     private final SimpleMotorFeedforward m_shooterFeedForward = new SimpleMotorFeedforward(0.5,0);
-        private static final double Kp_shooterA = .00025;
-        private static final double Ki_shooterA = 0;
-        private static final double Kd_shooterA = 0;
-        private static final double Kv_shooterA = 36000;
-        private static final double Ks_shooterA = 6000;
-        private static final double Kp_shooterB = .1;
-        private static final double Ki_shooterB = 0;
-        private static final double Kd_shooterB = 0;
-        private static final double Kv_shooterB = 0;
-        private static final double Ks_shooterB = 0;
-      // private static final double Kp_turnMotor = .1;
-       // private static final double Ki_turnMotor = 0;
-        //private static final double Kd_turnMotor = 0;
-        //private static final double Kv_turnMotor = 0;
-        //private static final double Ks_turnMotor = 0;
+    private static final double Kp_shooterA = .00025;
+    private static final double Ki_shooterA = 0;
+    private static final double Kd_shooterA = 0;
+    private static final double Kv_shooterA = 36000;
+    private static final double Ks_shooterA = 6000;
 
     public shooterSubsystem() {
         shooterMotorA = new SparkMax(shooterMotorAPort, SparkLowLevel.MotorType.kBrushless);
@@ -97,24 +82,6 @@ public class shooterSubsystem extends SubsystemBase {
             Ks_shooterA,
             Kv_shooterA));
         m_ShooterAPID.setTolerance(1);
-
-        m_ShooterBPID =  new ProfiledPIDController(
-          Kp_shooterB,
-          Ki_shooterB,
-          Kd_shooterB,
-          new TrapezoidProfile.Constraints(
-            Ks_shooterB,
-            Kv_shooterB));
-        m_ShooterBPID.setTolerance(1);
-    
-        /*m_turnMotorPID =  new ProfiledPIDController(
-          Kp_turnMotor,
-          Ki_turnMotor,
-          Kd_turnMotor,
-          new TrapezoidProfile.Constraints(
-            Ks_turnMotor,
-            Kv_turnMotor));
-        m_turnMotorPID.setTolerance(.05);*/
         
     }
 
@@ -127,8 +94,8 @@ public class shooterSubsystem extends SubsystemBase {
         final double shooterFeedForward = m_shooterFeedForward.calculate(m_desiredMotorASpeed);
 
         shooterMotorA.set(shooterFeedForward + MathUtil.clamp(m_ShooterAPID.calculate(m_ShooterMotorASpeed, m_desiredMotorASpeed),
-                                        -c_maxShooterASpeed,
-                                        c_maxShooterASpeed));    //need to check motor direction
+                                        -c_maxShooterACmd,
+                                        c_maxShooterACmd));    //need to check motor direction
         
         shooterMotorB.set(m_desiredMotorBSpeed);
         conveyorMotor.set(m_desiredConveyorSpeed);
@@ -140,9 +107,9 @@ public class shooterSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Desired Conveyor Speed", m_desiredConveyorSpeed);
         SmartDashboard.putNumber("Shooter A Speed", m_ShooterMotorASpeed);
         SmartDashboard.putNumber("Shooter B Speed", m_ShooterMotorBSpeed);
-        SmartDashboard.putNumber("Shooter A Offset", o_MotorASpeedOffset);
-        SmartDashboard.putNumber("Shooter B Offset", o_MotorBSpeedOffset);
         SmartDashboard.putNumber("Conveyor Speed", m_ConveyorMotorSpeed);
+        SmartDashboard.putNumber("Shooter A Offset", o_MotorASpeedOffset);
+                
 
         shooterADiags.publishMotorData();
         shooterBDiags.publishMotorData();
@@ -196,22 +163,13 @@ public class shooterSubsystem extends SubsystemBase {
         return m_ConveyorMotorSpeed;
     }
 
-    // Public functions to all D-Pad to adjust the offset of the Elevator Height
+    // Public functions to all D-Pad to adjust the offset of the Shooter (A) Speed
     public void incShooterASpeedOffset() {
         o_MotorASpeedOffset = o_MotorASpeedOffset + c_speedOffsetIncrement;
     }
 
     public void decShooterASpeedOffset() {
         o_MotorASpeedOffset = o_MotorASpeedOffset - c_speedOffsetIncrement;
-    }
-
-    // Public functions to all D-Pad to adjust the offset of the Elevator Height
-    public void incShooterBSpeedOffset() {
-        o_MotorBSpeedOffset = o_MotorBSpeedOffset + c_speedOffsetIncrement;
-    }
-
-    public void decShooterBSpeedOffset() {
-        o_MotorBSpeedOffset = o_MotorBSpeedOffset - c_speedOffsetIncrement;
     }
 
     public boolean getShoterAIsAtGoal () {
@@ -224,10 +182,10 @@ public class shooterSubsystem extends SubsystemBase {
      * @return The Shooter A Motor speeds (in rpm) appropriate for a given distance
      */
     public double calcSpeed(double dist) {
-        //double setSpeed = c_minShooterASpeed;        //defaults to min speed
-
+        
         //setSpeed = dist;      //Change this for different distances (calibration logic only)
         double setSpeed = 1200*dist*dist - 2200*dist + 3600;
+
         return setSpeed;
     }
     

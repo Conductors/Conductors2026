@@ -4,15 +4,10 @@
 
 package frc.robot;
 
-import java.util.function.BooleanSupplier;
-
-import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.net.PortForwarder;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -76,14 +71,12 @@ public class Robot extends TimedRobot {
   private Trigger greenTwo    = new JoystickButton(m_buttonBoard, 9);  
   private Trigger blueTwo     = new JoystickButton(m_buttonBoard, 10);
 
-// public static Pose3d targetPose = LimelightHelpers.getTargetPose3d_RobotSpace("");
-//public static Pose3d getTargetPose3d_RobotSpace();  
+  // public static Pose3d targetPose = LimelightHelpers.getTargetPose3d_RobotSpace("");
+  //public static Pose3d getTargetPose3d_RobotSpace();  
   private boolean isHighGear = false;
   private boolean isFieldRelative = false;
   boolean isInRange = false;
   
-
-
   private Trigger isInRangeTrigger = new Trigger(()-> isInRange);
   
   private final Drivetrain m_swerve = new Drivetrain();
@@ -173,10 +166,10 @@ public Robot() {
      //extend
     redOne.onTrue(new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake));
     redOne.onFalse(new intakeFuelCmd(0, m_intake));
-    // yellowOne.onTrue(new setShooterSpeed(Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
-    //          .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
-     yellowOne.onTrue(new setShooterSpeed(m_ShooterSubsystem, true, fiducials[closestAprilTagID].distToCamera))
-               .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
+     yellowOne.onTrue(new setShooterSpeed(Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
+              .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
+    // yellowOne.onTrue(new setShooterSpeed(m_ShooterSubsystem, true, fiducials[closestAprilTagID].distToCamera))  (referencing fiducials here is a null pointer on robot)
+    //           .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
     greenOne.onTrue(new climberCommand(climbLevel.e_levelOne, m_climbSubsystem));  
     //blueOne.onTrue(new climberCommand(climbLevel.e_levelTwo, m_climbSubsystem));
     blueOne.onTrue(new setClimbSpeed(0.6, m_climbSubsystem));
@@ -242,9 +235,7 @@ public Robot() {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
-
-    /* Button Triggers */
-    
+   
 
   }
   
@@ -267,8 +258,7 @@ public Robot() {
   @Override
   public void teleopPeriodic() {
     publishToDashboard();
-    //m_swerve.publishToDashboard();
-    //switchGears(false);
+
     m_swerve.updateOdometry();
 
     // Do this in either robot periodic or subsystem periodic
@@ -479,8 +469,9 @@ public Command climb(double speed) {
     SmartDashboard.putNumber("closestAprilTag", closestAprilTagID);
   }
 
-    public double getAprilTx (int[] tagIDs) {
+  public double getAprilTx (int[] tagIDs) {
     double txToTurn = 0; //Math.random(); //use random for simulation
+  
     if (tagIDs.length != 0)
     {
       System.out.println("TagID != 0");
