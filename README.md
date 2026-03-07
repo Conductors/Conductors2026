@@ -6,6 +6,9 @@
 3) Update the distance function
 4} y=381.81818x^{2}+205.45455x+1963.63636 -- code in distance equation 
 
+For Tuesday 3/7
+1} line 179 in robot. Wasnt working, might be fixed now but needs test
+2} Need to get YAW for angle change
 Dist.   rpm for shooter	
 1.0		2600
 1.5		3000

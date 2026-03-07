@@ -46,7 +46,7 @@ public class shooterSubsystem extends SubsystemBase {
     private static final double c_maxShooterASpeed  = 1;
     private static final double c_minShooterASpeed  = 0.1;
     private static final double c_shooterBSpeed  = .7;
-    private static final double c_conveyorSpeed  = .2;
+    private static final double c_conveyorSpeed  = .5;//.2;
 
     private static final double c_speedOffsetIncrement = 50;
 
@@ -168,11 +168,11 @@ public class shooterSubsystem extends SubsystemBase {
             m_desiredMotorBSpeed = 0;
             m_desiredConveyorSpeed = 0;
         } else if(speed > 0) {
-            m_desiredMotorBSpeed = c_shooterBSpeed;
-            m_desiredConveyorSpeed = c_conveyorSpeed;
-        } else if(speed < 0) {
             m_desiredMotorBSpeed = -c_shooterBSpeed;
             m_desiredConveyorSpeed = -c_conveyorSpeed;
+        } else if(speed < 0) {
+            m_desiredMotorBSpeed = c_shooterBSpeed;
+            m_desiredConveyorSpeed = c_conveyorSpeed;
         }
     }
 

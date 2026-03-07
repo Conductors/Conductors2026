@@ -10,6 +10,7 @@ import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.net.PortForwarder;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -74,10 +75,14 @@ public class Robot extends TimedRobot {
   private Trigger yellowTwo   = new JoystickButton(m_buttonBoard, 8);
   private Trigger greenTwo    = new JoystickButton(m_buttonBoard, 9);  
   private Trigger blueTwo     = new JoystickButton(m_buttonBoard, 10);
-  
+
+// public static Pose3d targetPose = LimelightHelpers.getTargetPose3d_RobotSpace("");
+//public static Pose3d getTargetPose3d_RobotSpace();  
   private boolean isHighGear = false;
   private boolean isFieldRelative = false;
   boolean isInRange = false;
+  
+
 
   private Trigger isInRangeTrigger = new Trigger(()-> isInRange);
   
@@ -168,10 +173,10 @@ public Robot() {
      //extend
     redOne.onTrue(new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake));
     redOne.onFalse(new intakeFuelCmd(0, m_intake));
-    //yellowOne.onTrue(new setShooterSpeed(-Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
-              //.onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
-    yellowOne.onTrue(new setShooterSpeed(m_ShooterSubsystem, true, distToCamera))
-              .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
+    // yellowOne.onTrue(new setShooterSpeed(Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
+    //          .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
+     yellowOne.onTrue(new setShooterSpeed(m_ShooterSubsystem, true, fiducials[closestAprilTagID].distToCamera))
+               .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
     greenOne.onTrue(new climberCommand(climbLevel.e_levelOne, m_climbSubsystem));  
     //blueOne.onTrue(new climberCommand(climbLevel.e_levelTwo, m_climbSubsystem));
     blueOne.onTrue(new setClimbSpeed(0.6, m_climbSubsystem));
@@ -182,7 +187,7 @@ public Robot() {
             .onFalse(new intakeFuelCmd(0, m_intake));
 
           
-    yellowTwo.onTrue(new setShooterSpeed(Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
+    yellowTwo.onTrue(new setShooterSpeed(-Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
               .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
     greenTwo.onTrue(new climberCommand(climbLevel.e_floor, m_climbSubsystem));  
     //blueTwo.onTrue(new climberCommand(climbLevel.e_levelOne, m_climbSubsystem));
@@ -207,6 +212,7 @@ public Robot() {
 
     scanForAprilTags();
     
+    // GetAngleChange();
   }
 
   
@@ -291,6 +297,14 @@ public Robot() {
     m_swerve.drive(xSpeed, ySpeed, rot, isFieldRelative, getPeriod());   
 
   }
+
+  // public double GetAngleChange(){
+  //   double baseYaw = targetPose.getRotation().getZ();
+    
+  //   double currentRotation = Math.atan(Math.cos(baseYaw)/Math.sin(baseYaw));
+  //   System.out.println(baseYaw + ", " + currentRotation);
+  //   return 1;
+  // }
 
   
   public void publishToDashboard()
