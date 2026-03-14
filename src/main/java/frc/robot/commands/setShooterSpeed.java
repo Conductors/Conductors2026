@@ -14,7 +14,6 @@ public class setShooterSpeed extends Command {
   private double m_distanceFromTag;
   private Timer m_delayTimer;
   private double c_MotorBDelay = 1.5;
-  private static int[] aprilTagList = {1, 3, 5};
   private Robot robotRef;
 
 

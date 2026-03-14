@@ -1,6 +1,10 @@
 package frc.robot;
 
+import java.util.Dictionary;
+
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class Constants {
     //RoboRio Constants
@@ -77,6 +81,10 @@ public final class Constants {
     public static final int[] frontTagsMiddle = {2, 12};
     public static final int[] frontTagsSide = {3, 13};     //red, blue alliance tags
     public static final int[] rightTags = {5, 15};     //red, blue alliance tags
+    
+    public static final int[] middleIds = {10, 5, 4, 2};
+
+    public static final Map<Integer, Integer> IDpairs = Map.of(10, 9, 5, 8, 4, 3, 2, 11);
 
     public static final double[] shootMaxRange = {1.0, 3.0};      //max distance for shooter score
    

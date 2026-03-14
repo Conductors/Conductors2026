@@ -144,10 +144,7 @@ public Robot() {
     backButton.onTrue(shiftGears()); 
     startButton.onTrue(changeIsFieldRelative());
     
-    aButton.onTrue(turnTowardAprilTag(Constants.AprilTagConstants.frontTagsMiddle));
-    yButton.onTrue(turnTowardAprilTag(Constants.AprilTagConstants.frontTagsSide)); 
-    bButton.onTrue(turnTowardAprilTag(Constants.AprilTagConstants.rightTags));
-    xButton.onTrue(turnTowardAprilTag(Constants.AprilTagConstants.leftTags));
+    xButton.onTrue(turnTowardAprilTag(Constants.AprilTagConstants.middleIds));
     
     //yButton.onTrue(new setShooterSpeed(Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
     //        .onFalse(new setShooterSpeed(0, m_ShooterSubsystem));  //Just for testing
@@ -291,7 +288,7 @@ public Robot() {
 
   public double GetAngleChange(){
     //Getting Yaw
-    double[] distanceAndId = getDistToTag(new int[]{1,3,5});
+    double[] distanceAndId = getDistToTag(Constants.AprilTagConstants.middleIds);
     if (distanceAndId[0] == 0){
       return 0;
     }
@@ -299,15 +296,7 @@ public Robot() {
     double distanceB = .3556;
     double distanceC = 0; //logic is below
 
-    if (distanceAndId[1] == 1){
-     distanceC =  getDistToTag(new int[]{2})[0];
-    }
-    if (distanceAndId[1] == 3){
-      distanceC = getDistToTag(new int[]{4})[0];
-    }
-     if (distanceAndId[1] == 5){
-     distanceC = getDistToTag(new int[]{6})[0];
-    }
+    distanceC =  getDistToTag(new int[] { Constants.AprilTagConstants.IDpairs.get((int)distanceAndId[1]) })[0];
 
     if (distanceC == 0){
       return 0;
@@ -326,7 +315,7 @@ public Robot() {
   }
   public double getDistanceFromHubCenter(){
      //Getting Yaw
-    double[] distanceAndId = getDistToTag(new int[]{1,3,5});
+    double[] distanceAndId = getDistToTag(Constants.AprilTagConstants.middleIds);
     if (distanceAndId[0] == 0){
       return 0;
     }
@@ -334,15 +323,7 @@ public Robot() {
     double distanceB = .3556;
     double distanceC = 0; //logic is below
 
-    if (distanceAndId[1] == 1){
-     distanceC =  getDistToTag(new int[]{2})[0];
-    }
-    if (distanceAndId[1] == 3){
-      distanceC = getDistToTag(new int[]{4})[0];
-    }
-     if (distanceAndId[1] == 5){
-     distanceC = getDistToTag(new int[]{6})[0];
-    }
+    distanceC =  getDistToTag(new int[] { Constants.AprilTagConstants.IDpairs.get((int)distanceAndId[1]) })[0];
 
     if (distanceC == 0){
       return 0;
@@ -352,7 +333,7 @@ public Robot() {
    double aprilTagYaw = Math.toRadians(90-angle);
 
 
- double distanceFromTagToCenter = .5969;
+  double distanceFromTagToCenter = .5969;
  
     return Math.sqrt(Math.pow((distanceA* Math.cos(aprilTagYaw) + distanceFromTagToCenter), 2) + Math.pow((distanceA * Math.sin(aprilTagYaw)),2));
   }
