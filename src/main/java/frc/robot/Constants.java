@@ -82,7 +82,7 @@ public final class Constants {
    
   }
 
-  public static final double c_defaultIntakeSpeed = .5;
+  public static final double c_defaultIntakeSpeed = .35;
   public static final double c_defaultShooterSpeed = 4000;   //tested at 70% speed
   public static final double c_shooterMotorStop = 0;
 

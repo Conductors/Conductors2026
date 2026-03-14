@@ -14,7 +14,7 @@ public class setShooterSpeed extends Command {
   private double m_distanceFromTag;
   private Timer m_delayTimer;
   private double c_MotorBDelay = 1.5;
-  private static int[] aprilTagList = {1, 2, 5};
+  private static int[] aprilTagList = {1, 3, 5};
   private Robot robotRef;
 
 
@@ -45,7 +45,7 @@ public class setShooterSpeed extends Command {
   public void initialize() {
     //Run once, at the start of the command
     if(m_useDistance){
-    double distanceFromTag = robotRef.getDistToTag(aprilTagList);
+    double distanceFromTag = robotRef.getDistanceFromHubCenter();
     System.out.println("distFromTag="+distanceFromTag);
     
     if (distanceFromTag == 0){

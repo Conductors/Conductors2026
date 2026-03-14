@@ -185,7 +185,7 @@ public class shooterSubsystem extends SubsystemBase {
     public double calcSpeed(double dist) {
         
         //setSpeed = dist;      //Change this for different distances (calibration logic only)
-        double setSpeed = 1200*dist*dist - 2200*dist + 3600;
+        double setSpeed = -56.93*dist*dist + 1140.05*dist + 1116.609;
 
         return setSpeed;
     }

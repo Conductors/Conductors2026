@@ -17,6 +17,7 @@ private double m_goalPos = 0;
 private double wrappedAngle = 0;
 private double m_initialPos = 0;
 private double m_currentPos = 0;
+private double getAngleChange;
 private double m_Period = Constants.kDefaultPeriod;
 private final ProfiledPIDController m_PIDController;
 private int[] l_tagsToCheck;
@@ -54,14 +55,15 @@ private Timer m_timer = new Timer();
     
     wrappedAngle = MathUtil.angleModulus(lRobot.getAprilTx(l_tagsToCheck)); //Wrap the angle to be between -pi and pi
     
-    
+    getAngleChange = MathUtil.angleModulus((lRobot.GetAngleChange()));
+
     //System.out.print("wrappedAngle = ");
     //System.out.println(wrappedAngle);
    
     //System.out.print("InitPos = ");
     //System.out.println(m_initialPos);
      
-    m_goalPos = m_initialPos + wrappedAngle;
+    m_goalPos = m_initialPos + wrappedAngle + getAngleChange;
 
     System.out.print("GoalPos = ");
     System.out.println(m_goalPos);

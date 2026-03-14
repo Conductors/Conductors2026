@@ -167,10 +167,10 @@ public Robot() {
      //extend
     redOne.onTrue(new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake));
     redOne.onFalse(new intakeFuelCmd(0, m_intake));
-     yellowOne.onTrue(new setShooterSpeed(Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
-              .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
-    // yellowOne.onTrue(new setShooterSpeed(m_ShooterSubsystem, true, this)) 
-    //            .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
+    //  yellowOne.onTrue(new setShooterSpeed(Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
+    //           .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
+    yellowOne.onTrue(new setShooterSpeed(m_ShooterSubsystem, true, this)) 
+               .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
     greenOne.onTrue(new climberCommand(climbLevel.e_levelOne, m_climbSubsystem));  
     //blueOne.onTrue(new climberCommand(climbLevel.e_levelTwo, m_climbSubsystem));
     blueOne.onTrue(new setClimbSpeed(0.6, m_climbSubsystem));
@@ -289,13 +289,73 @@ public Robot() {
 
   }
 
-  // public double GetAngleChange(){
-  //   double baseYaw = targetPose.getRotation().getZ();
+  public double GetAngleChange(){
+    //Getting Yaw
+    double[] distanceAndId = getDistToTag(new int[]{1,3,5});
+    if (distanceAndId[0] == 0){
+      return 0;
+    }
+    double distanceA = distanceAndId[0];
+    double distanceB = .3556;
+    double distanceC = 0; //logic is below
+
+    if (distanceAndId[1] == 1){
+     distanceC =  getDistToTag(new int[]{2})[0];
+    }
+    if (distanceAndId[1] == 3){
+      distanceC = getDistToTag(new int[]{4})[0];
+    }
+     if (distanceAndId[1] == 5){
+     distanceC = getDistToTag(new int[]{6})[0];
+    }
+
+    if (distanceC == 0){
+      return 0;
+    }
+    double angle = (distanceA*distanceA + distanceB* distanceB - distanceC*distanceC)/(2 * distanceA * distanceB);
+    angle = Math.toDegrees(Math.acos(angle));
+   double aprilTagYaw = Math.toRadians(90-angle);
+
+
+ double distanceFromTagToCenter = .5969;
+ 
     
-  //   double currentRotation = Math.atan(Math.cos(baseYaw)/Math.sin(baseYaw));
-  //   System.out.println(baseYaw + ", " + currentRotation);
-  //   return 1;
-  // }
+    double currentRotation = Math.atan(Math.cos(aprilTagYaw)/Math.sin(aprilTagYaw));
+    double desiredRotation = Math.atan((distanceA* Math.cos(aprilTagYaw) + distanceFromTagToCenter)/(distanceA * Math.sin(aprilTagYaw)));
+    return desiredRotation - currentRotation;
+  }
+  public double getDistanceFromHubCenter(){
+     //Getting Yaw
+    double[] distanceAndId = getDistToTag(new int[]{1,3,5});
+    if (distanceAndId[0] == 0){
+      return 0;
+    }
+    double distanceA = distanceAndId[0];
+    double distanceB = .3556;
+    double distanceC = 0; //logic is below
+
+    if (distanceAndId[1] == 1){
+     distanceC =  getDistToTag(new int[]{2})[0];
+    }
+    if (distanceAndId[1] == 3){
+      distanceC = getDistToTag(new int[]{4})[0];
+    }
+     if (distanceAndId[1] == 5){
+     distanceC = getDistToTag(new int[]{6})[0];
+    }
+
+    if (distanceC == 0){
+      return 0;
+    }
+    double angle = (distanceA*distanceA + distanceB* distanceB - distanceC*distanceC)/(2 * distanceA * distanceB);
+    angle = Math.toDegrees(Math.acos(angle));
+   double aprilTagYaw = Math.toRadians(90-angle);
+
+
+ double distanceFromTagToCenter = .5969;
+ 
+    return Math.sqrt(Math.pow((distanceA* Math.cos(aprilTagYaw) + distanceFromTagToCenter), 2) + Math.pow((distanceA * Math.sin(aprilTagYaw)),2));
+  }
 
   
   public void publishToDashboard()
@@ -469,6 +529,28 @@ public Command climb(double speed) {
     SmartDashboard.putNumber("Txnc", txnc);
     SmartDashboard.putNumber("closestAprilTag", closestAprilTagID);
   }
+    public double getAprilYaw (int[] tagIDs) {
+    double yaw = 0; //Math.random(); //use random for simulation
+  
+    if (tagIDs.length != 0)
+    {
+      System.out.println("TagID != 0");
+      for(RawFiducial fiducial : fiducials)   //cycle through all detected April Tags
+      {
+        for(int tagID : tagIDs) {             //determine if any of the detect tags are in the list of inters
+          if (fiducial.id == tagID) {
+            //yaw = fiducial.;
+          } else {
+            //txToTurn = 0;
+            System.out.println("TagID = 0");
+          }
+        }
+      }
+    }
+ 
+    return yaw;
+  }
+
 
   public double getAprilTx (int[] tagIDs) {
     double txToTurn = 0; //Math.random(); //use random for simulation
@@ -496,8 +578,9 @@ public Command climb(double speed) {
     return angleToTurn;
   }
 
-  public double getDistToTag (int[] tagIDs) {
+  public double[] getDistToTag (int[] tagIDs) {
     double distToTag = 0; //Math.random(); //use random for simulation
+    double idUsed = 0;
     if (tagIDs.length != 0)
     {
       System.out.println("TagID != 0");
@@ -507,6 +590,7 @@ public Command climb(double speed) {
           System.out.println(fiducial.id + ", " + tagID);
           if (fiducial.id == tagID) {
             distToTag = fiducial.distToRobot;
+            idUsed = fiducial.id;
             System.out.println(distToTag);
           } else {
             //txToTurn = 0;
@@ -519,7 +603,7 @@ public Command climb(double speed) {
     SmartDashboard.putNumber("distToTag", distToTag);
 
     //return distToTag;
-    return distToTag; //for sim only
+    return new double[]{distToTag, idUsed}; //for sim only
   }
 
 }
