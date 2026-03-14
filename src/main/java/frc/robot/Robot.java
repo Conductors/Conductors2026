@@ -101,7 +101,7 @@ public class Robot extends TimedRobot {
 
   private String m_autoSelected;
   private final SendableChooser<String> m_AutoChooser = new SendableChooser<>();
-  private final SendableChooser<String> m_AprilTagSelected = new SendableChooser<>();
+  
 
   int id;                  // Tag ID
   double txnc;             // X offset (no crosshair)
@@ -128,18 +128,12 @@ public Robot() {
     scanForAprilTags();
 
     m_AutoChooser.setDefaultOption("None", Constants.AutoConstants.kAutoProgram[0]);
-    m_AutoChooser.addOption("Auto 1", Constants.AutoConstants.kAutoProgram[1]);
-    m_AutoChooser.addOption("Auto 2", Constants.AutoConstants.kAutoProgram[2]);
-    m_AutoChooser.addOption("Auto 3", Constants.AutoConstants.kAutoProgram[3]);
+    m_AutoChooser.addOption("Left Side Score", Constants.AutoConstants.kAutoProgram[1]);
+    m_AutoChooser.addOption("Center Score", Constants.AutoConstants.kAutoProgram[2]);
+    m_AutoChooser.addOption("Right Side Score", Constants.AutoConstants.kAutoProgram[3]);
+    m_AutoChooser.addOption("Cen Score, Climb", Constants.AutoConstants.kAutoProgram[3]);
     SmartDashboard.putData("Auto Choices", m_AutoChooser);  //Sync the Autochooser
 
-    m_AprilTagSelected.setDefaultOption("None", "None");
-    m_AprilTagSelected.addOption("1", "1");
-    m_AprilTagSelected.addOption("2","2");
-    m_AprilTagSelected.addOption("3","3");
-  
-    //m_ShooterSubsystem.initDefaultCommand();
-    //m_intake.initDefaultCommand();
 
     backButton.onTrue(shiftGears()); 
     startButton.onTrue(changeIsFieldRelative());
@@ -351,124 +345,6 @@ public Robot() {
   }
 
 
-  /* AUTO Stuff below here */
-  public Command getAutonomousCommand() {
-
-      Command temp = new Command() {};
-    // Grabs the choser Auto from Shuffleboard
-    switch (m_autoSelected) {
-      case "None":
-      //temp = m_swerve.getPathPlannerCommand();
-        break;
-      case "Auto 1":
-        temp = Commands.sequence(
-          new InstantCommand(() -> m_swerve.resetOdometry(new Pose2d(0,0, new Rotation2d(0)))),          
-          driveStraight(1),
-          new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1));
-        break;
-      case "Auto 2":
-        temp = Commands.sequence(
-          new InstantCommand(() -> m_swerve.resetOdometry(new Pose2d(0,0, new Rotation2d(0)))),
-          new InstantCommand(() -> System.out.println("Command 1:")),
-          driveStraight(1),
-          new InstantCommand(() -> System.out.println("Stop & wait  .5 seconds")),
-          new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(.5),
-          new InstantCommand(() -> System.out.println("Done !")));
-        break;
-      case "Auto 3":
-        temp = Commands.sequence(
-        new InstantCommand(() -> m_swerve.resetOdometry(new Pose2d(0,0, new Rotation2d(0)))),
-        new InstantCommand(() -> System.out.println("Command 1:")),
-        driveToPosition(new Pose2d(0, 0, new Rotation2d(Math.PI/2))),
-        new InstantCommand(() -> System.out.println("Stop & wait  .5 seconds")),
-        new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(.5),
-        new InstantCommand(() -> System.out.println("Done !")));
-        break;
-      case "Shoot From Side":
-        temp = Commands.sequence(
-          new InstantCommand(() -> m_swerve.resetOdometry(new Pose2d(0,0, new Rotation2d(0)))),
-          new InstantCommand(() -> System.out.println("Shoot")),
-          shootFuel(Constants.c_defaultShooterSpeed), 
-          new WaitCommand(10),
-          stopShootFuel(),
-          new InstantCommand(() -> System.out.println("Done !")));
-        break;
-        
-case "Shoot From Center":
-        temp = Commands.sequence(
-          new InstantCommand(() -> m_swerve.resetOdometry(new Pose2d(0,0, new Rotation2d(0)))),
-          ShootAuto(5000), 
-          new InstantCommand(() -> System.out.println("Done !")));
-        break;
-
-case "Shoot Then Climb":
-        temp = Commands.sequence(
-          new InstantCommand(() -> m_swerve.resetOdometry(new Pose2d(0,0, new Rotation2d(0)))),
-          ShootAuto(5000),
-          driveStraight(2.18), //86.6 inches
-          climb(0.6),
-          new InstantCommand(() -> System.out.println("Done !")));
-        break;
-
-      default:
-        break;
-    }
-    return temp;
-  }
- 
-  public InstantCommand resetOdoCommand() {
-    return new InstantCommand(() -> m_swerve.resetOdometry(new Pose2d(0,0, new Rotation2d(0))));
-  }
-
-  public Command driveStraight(double dist) {
-    return new driveStraightPID(dist, getPeriod(), m_swerve);
-  }
-    
-  public Command driveSideways(double dist) {
-    return new driveSidewaysPID(dist, getPeriod(), m_swerve);
-  }
-
-  public Command driveSpinways(double angle) {
-    return new driveSpinwaysPID(angle, getPeriod(), m_swerve);
-  }
-
-  public Command driveToPosition(Pose2d position) {
-    return new driveToPositionPID(position, getPeriod(), m_swerve);
-  }
-
-  public Command shiftGears() {
-    return Commands.sequence(
-        new InstantCommand(() -> System.out.println("shiftGears")),
-        new InstantCommand(() -> isHighGear=!isHighGear)
-    );
-  }
-public Command ShootAuto(double speed) {
-  return Commands.sequence(
-          new InstantCommand(() -> System.out.println("Shoot")),
-          shootFuel(speed), 
-          new WaitCommand(10),
-          stopShootFuel());
-}
-  
-
-  public Command shootFuel(double speed) {
-    return new setShooterSpeed(speed, m_ShooterSubsystem);
-  }
-
-public Command climb(double speed) {
-  return new setClimbSpeed(speed, m_climbSubsystem);
-}
-
- public Command stopShootFuel() {
-    return new setShooterSpeed(0, m_ShooterSubsystem);
-  }
-  public Command changeIsFieldRelative() {
-    return Commands.sequence(
-      new InstantCommand(() -> System.out.println("fieldRelative")),
-        new InstantCommand(() -> isFieldRelative=!isFieldRelative)
-    );
-  }
-
   public Command turnTowardAprilTag(int[] tagIDs) {
     m_focusAprilTags = tagIDs;
     return new turnTowardsAprilPID(tagIDs, getPeriod(), m_swerve, this);
@@ -585,6 +461,124 @@ public Command climb(double speed) {
 
     //return distToTag;
     return new double[]{distToTag, idUsed}; //for sim only
+  }
+
+
+
+
+  /** AUTO Stuff below here **/
+  public Command getAutonomousCommand() {
+
+    Command temp = new Command() {};
+    // Grabs the choser Auto from Shuffleboard in AutoInit
+    
+    switch (m_autoSelected) {
+      case "None":
+        //Do Nothing
+        break;
+
+      case "LeftSideScore":
+        temp = Commands.sequence(
+          new InstantCommand(() -> m_swerve.resetOdometry(new Pose2d(0,0, new Rotation2d(0)))),          
+          shootByDistAuto(5),
+          new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1));
+        break;
+
+      case "CenterScore":
+        temp = Commands.sequence(
+          new InstantCommand(() -> m_swerve.resetOdometry(new Pose2d(0,0, new Rotation2d(0)))),
+          new InstantCommand(() -> System.out.println("Command 1:")),
+          driveStraight(-1),
+          shootByDistAuto(5),
+          new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(.5),
+          new InstantCommand(() -> System.out.println("Done !")));
+        break;
+
+      case "RightSideScore":
+        temp = Commands.sequence(
+          new InstantCommand(() -> m_swerve.resetOdometry(new Pose2d(0,0, new Rotation2d(0)))),          
+          shootByDistAuto(5),
+          new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1));
+        break;
+
+      case "ShootCenterThenClimb":
+        temp = Commands.sequence(
+          new InstantCommand(() -> m_swerve.resetOdometry(new Pose2d(0,0, new Rotation2d(0)))),
+          driveStraight(-1),
+          shootByDistAuto(5),
+          driveSpinways(Math.PI),
+          driveStraight(2.18), //86.6 inches
+          climb(0.6),
+          new InstantCommand(() -> System.out.println("Done !")));
+        break;
+
+      default:
+        break;
+    }
+    return temp;
+  }
+ 
+  public InstantCommand resetOdoCommand() {
+    return new InstantCommand(() -> m_swerve.resetOdometry(new Pose2d(0,0, new Rotation2d(0))));
+  }
+
+  public Command driveStraight(double dist) {
+    return new driveStraightPID(dist, getPeriod(), m_swerve);
+  }
+    
+  public Command driveSideways(double dist) {
+    return new driveSidewaysPID(dist, getPeriod(), m_swerve);
+  }
+
+  public Command driveSpinways(double angle) {
+    return new driveSpinwaysPID(angle, getPeriod(), m_swerve);
+  }
+
+  public Command driveToPosition(Pose2d position) {
+    return new driveToPositionPID(position, getPeriod(), m_swerve);
+  }
+
+  public Command shiftGears() {
+    return Commands.sequence(
+        new InstantCommand(() -> System.out.println("shiftGears")),
+        new InstantCommand(() -> isHighGear=!isHighGear)
+    );
+  }
+
+  public Command shootBySpeedAuto(double speed) {
+    return Commands.sequence(
+            new InstantCommand(() -> System.out.println("Shoot")),
+            shootFuel(speed), 
+            new WaitCommand(10),
+            stopShootFuel());
+  }
+
+  public Command shootByDistAuto(double shootTime) {
+    return Commands.sequence(
+            new setShooterSpeed(m_ShooterSubsystem, true, this),
+            new WaitCommand(shootTime),
+            new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem)
+    );
+  }
+  
+
+  public Command shootFuel(double speed) {
+    return new setShooterSpeed(speed, m_ShooterSubsystem);
+  }
+
+  public Command climb(double speed) {
+    return new setClimbSpeed(speed, m_climbSubsystem);
+  }
+
+ public Command stopShootFuel() {
+    return new setShooterSpeed(0, m_ShooterSubsystem);
+  }
+
+  public Command changeIsFieldRelative() {
+    return Commands.sequence(
+      new InstantCommand(() -> System.out.println("fieldRelative")),
+        new InstantCommand(() -> isFieldRelative=!isFieldRelative)
+    );
   }
 
 }
