@@ -69,7 +69,7 @@ public final class Constants {
             new TrapezoidProfile.Constraints(
                 kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
 
-        public static final String[] kAutoProgram = {"None", "Auto 1", "Auto 2", "Auto 3", "BackUp", "ScoreOneCoral", "ScoreCoralTake1Algae", "diagScoreReef", "ScoreCoralClearAlgae"};
+        public static final String[] kAutoProgram = {"None", "LeftSideScore", "CenterScore", "RightSideScore", "ShootCenterThenClimb"};
       }
 
   public static final class AprilTagConstants {
