@@ -32,6 +32,7 @@ import frc.robot.commands.driveStraightPID;
 import frc.robot.commands.driveToPositionPID;
 import frc.robot.commands.extendIntake;
 import frc.robot.commands.intakeFuelCmd;
+import frc.robot.commands.retractAndIntake;
 import frc.robot.commands.retractIntake;
 import frc.robot.commands.setClimbSpeed;
 import frc.robot.commands.setShooterSpeed;
@@ -152,7 +153,7 @@ public Robot() {
     povLeft.onTrue(new InstantCommand(() -> m_intake.incIntakeSlideOffset()));
     povRight.onTrue(new InstantCommand(() -> m_intake.decIntakeSlideOffset()));
 
-    whiteOne.onTrue(new extendIntake(true, m_intake))
+    lbButton.onTrue(new extendIntake(true, m_intake))
                 .onFalse(new extendIntake(false, m_intake));
 
      //extend
@@ -160,23 +161,30 @@ public Robot() {
     redOne.onFalse(new intakeFuelCmd(0, m_intake));
     //  yellowOne.onTrue(new setShooterSpeed(Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
     //           .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
-    yellowOne.onTrue(new setShooterSpeed(m_ShooterSubsystem, true, this)) 
+    blueOne.onTrue(new setShooterSpeed(m_ShooterSubsystem, true, this)) 
                .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
     greenOne.onTrue(new climberCommand(climbLevel.e_levelOne, m_climbSubsystem));  
     //blueOne.onTrue(new climberCommand(climbLevel.e_levelTwo, m_climbSubsystem));
-    blueOne.onTrue(new setClimbSpeed(0.6, m_climbSubsystem));
+    // blueOne.onTrue(new setClimbSpeed(0.6, m_climbSubsystem));
    
-    whiteTwo.onTrue(new retractIntake(true, m_intake));
-    whiteTwo.onFalse(new retractIntake(false, m_intake));    //retract
+    rbButton.onTrue(new retractIntake(true, m_intake, Constants.kSlideSpeed));
+    rbButton.onFalse(new retractIntake(false, m_intake, Constants.kSlideSpeed));    //retract
     redTwo.onTrue(new intakeFuelCmd(Constants.c_defaultIntakeSpeed, m_intake))
             .onFalse(new intakeFuelCmd(0, m_intake));
 
           
-    yellowTwo.onTrue(new setShooterSpeed(-Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
+    blueTwo.onTrue(new setShooterSpeed(-Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
               .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
     greenTwo.onTrue(new climberCommand(climbLevel.e_floor, m_climbSubsystem));  
+
+    whiteOne.onTrue(new retractAndIntake(true, false, m_intake, Constants.kSlideSpeedSlow, -Constants.c_defaultIntakeSpeed));
+    whiteOne.onFalse(new retractAndIntake(false, false, m_intake, 0, 0));
+    
+    //whiteOne.onTrue(new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake));
+    //whiteOne.onFalse(new intakeFuelCmd(0, m_intake));
+
     //blueTwo.onTrue(new climberCommand(climbLevel.e_levelOne, m_climbSubsystem));
-    blueTwo.onTrue(new setClimbSpeed(-0.6, m_climbSubsystem));
+    // blueTwo.onTrue(new setClimbSpeed(-0.6, m_climbSubsystem));
   } 
 
 
@@ -341,7 +349,11 @@ public Robot() {
     SmartDashboard.putNumber("Gyro Angle", m_swerve.m_gyro.getRotation2d().getDegrees());
     SmartDashboard.putBoolean("High Gear Enabled", isHighGear);
     SmartDashboard.putBoolean("isFieldRelative", isFieldRelative);
-    SmartDashboard.putNumber("RightTrigger", m_controller.getRightTriggerAxis());    
+    SmartDashboard.putNumber("RightTrigger", m_controller.getRightTriggerAxis());   
+    
+    SmartDashboard.putNumber("RobotSpeed - x", m_swerve.getRobotChassisSpeeds().vxMetersPerSecond);
+    SmartDashboard.putNumber("RobotSpeed - y", m_swerve.getRobotChassisSpeeds().vyMetersPerSecond);
+    SmartDashboard.putNumber("RobotSpeed - rot", m_swerve.getRobotChassisSpeeds().omegaRadiansPerSecond);
   }
 
 
@@ -479,8 +491,19 @@ public Robot() {
 
       case "LeftSideScore":
         temp = Commands.sequence(
-          new InstantCommand(() -> m_swerve.resetOdometry(new Pose2d(0,0, new Rotation2d(0)))),          
-          shootByDistAuto(5),
+          new InstantCommand(() -> m_swerve.resetOdometry(new Pose2d(0,0, new Rotation2d(0)))),
+          new extendIntake(true, m_intake),          
+          new WaitCommand(.5),    
+          new extendIntake(false, m_intake),   
+          new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake),
+          shootBySpeedAuto(-2000),
+          new WaitCommand(.25),             
+          shootByDistAuto(4),
+          new retractAndIntake(true, false, m_intake, Constants.kSlideSpeedSlow, -Constants.c_defaultIntakeSpeed),
+          new WaitCommand(.5),
+          new retractAndIntake(false, false, m_intake, 0,0),
+          shootByDistAuto(4),          
+          new intakeFuelCmd(0, m_intake),
           new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1));
         break;
 
@@ -489,9 +512,20 @@ public Robot() {
           new InstantCommand(() -> m_swerve.resetOdometry(new Pose2d(0,0, new Rotation2d(0)))),
           new InstantCommand(() -> System.out.println("Command 1:")),
           driveStraight(-1),
-          shootByDistAuto(5),
-          new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(.5),
-          new InstantCommand(() -> System.out.println("Done !")));
+          new InstantCommand(() -> m_swerve.resetOdometry(new Pose2d(0,0, new Rotation2d(0)))),
+          new extendIntake(true, m_intake),          
+          new WaitCommand(.5),    
+          new extendIntake(false, m_intake),   
+          new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake),
+          shootBySpeedAuto(-2000),
+          new WaitCommand(.25),             
+          shootByDistAuto(4),
+          new retractAndIntake(true, false, m_intake, Constants.kSlideSpeedSlow, -Constants.c_defaultIntakeSpeed),
+          new WaitCommand(.5),
+          new retractAndIntake(false, false, m_intake, 0,0),
+          shootByDistAuto(4),          
+          new intakeFuelCmd(0, m_intake),
+          new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1));
         break;
 
       case "RightSideScore":
@@ -538,6 +572,7 @@ public Robot() {
     return new driveToPositionPID(position, getPeriod(), m_swerve);
   }
 
+
   public Command shiftGears() {
     return Commands.sequence(
         new InstantCommand(() -> System.out.println("shiftGears")),
@@ -547,9 +582,9 @@ public Robot() {
 
   public Command shootBySpeedAuto(double speed) {
     return Commands.sequence(
-            new InstantCommand(() -> System.out.println("Shoot")),
+            //new setShooterSpeed(m_ShooterSubsystem, true, this),
             shootFuel(speed), 
-            new WaitCommand(10),
+            new WaitCommand(1),
             stopShootFuel());
   }
 

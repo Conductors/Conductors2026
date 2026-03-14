@@ -4,12 +4,14 @@ import frc.robot.Constants;
 import frc.robot.subsystems.intake;
 import edu.wpi.first.wpilibj2.command.Command;
 
-public class retractIntake extends Command{
+public class retractAndIntake extends Command{
     private intake m_intakeSubsystem;
     //private boolean m_commandExtend = true;
     private boolean retract = false;
-    private double m_speedCmd = 0;
-    private double retractSpeed;
+    private double m_slideSpeedCmd = 0;
+    private double m_desiredRetractSpeed;
+    private double m_intakeSpeedCmd = 0;
+    private boolean m_isReverse = false;
 
     
 
@@ -18,10 +20,12 @@ public class retractIntake extends Command{
    * @param is The intake subsystem to control
    * @param retracted Indicates whether to extend (false) or retract (true)
   */
-  public retractIntake(boolean retracted, intake is, double speed) {
+  public retractAndIntake(boolean retracted, boolean reverse, intake is, double slideSpeed, double intakeSpeed) {
     m_intakeSubsystem = is;
     retract = retracted;
-    retractSpeed = speed;
+    m_desiredRetractSpeed = slideSpeed;
+    m_isReverse = reverse;
+    m_intakeSpeedCmd = m_isReverse? -intakeSpeed:intakeSpeed;   //negate speed if m_isReverse is true 
     addRequirements(m_intakeSubsystem);
   }
 
@@ -29,10 +33,12 @@ public class retractIntake extends Command{
   public void initialize() {
     //Run once, at the start of the command
     if (retract == true) {
-        m_speedCmd = -retractSpeed;
+        m_slideSpeedCmd = -m_desiredRetractSpeed;
     } else {
-        m_speedCmd = 0;
+        m_slideSpeedCmd = 0;
     }
+
+    
 
   }
 
@@ -44,7 +50,8 @@ public class retractIntake extends Command{
     } else {
         m_intakeSubsystem.retract();
     }*/
-    m_intakeSubsystem.setDesiredSlideSpeed(m_speedCmd);
+    m_intakeSubsystem.setDesiredSlideSpeed(m_slideSpeedCmd);
+    m_intakeSubsystem.setIntakeSpeed(m_intakeSpeedCmd);
     }
 
   @Override

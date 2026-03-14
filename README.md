@@ -3,9 +3,13 @@
 
 
 Things to change before comp
-1. Turn towards april tags, center id numbers
-2. Get Yaw center ids and matching ids
-3. switch DistanceB in Yaw to distance between aptil tags and distance from april tag to hub center
+1. Blue Alliance april tag ids
+
+
+intake 
+37.57 (all the way in)
+35.35 (ok height)
+
 
 
 
