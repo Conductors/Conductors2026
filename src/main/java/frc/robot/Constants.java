@@ -1,9 +1,8 @@
 package frc.robot;
 
-import java.util.Dictionary;
-
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import java.util.HashMap;
 import java.util.Map;
 
 public final class Constants {
@@ -75,6 +74,12 @@ public final class Constants {
                 kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
 
         public static final String[] kAutoProgram = {"None", "LeftSideScore", "CenterScore", "RightSideScore", "ShootCenterThenClimb"};
+        public static final Pose2d[] kStartingPoses = {
+            new Pose2d(0,0, new Rotation2d(0)),   //Default
+            new Pose2d(2,2, new Rotation2d(Math.PI/3)),   //Left Side Start
+            new Pose2d(3,3, new Rotation2d(Math.PI/2)),   //Center Start
+            new Pose2d(4,4, new Rotation2d(2*Math.PI/3))   //Right Side Start          
+        };
       }
 
   public static final class AprilTagConstants {

@@ -84,6 +84,7 @@ public class Robot extends TimedRobot {
   private final Field2d m_field = new Field2d();
 
   private RawFiducial[] fiducials;
+  private Pose2d limeLightPose;
 
   StructPublisher<Pose2d> publisher = NetworkTableInstance.getDefault().getStructTopic("MyPose", Pose2d.struct).publish();
 
@@ -113,7 +114,7 @@ public class Robot extends TimedRobot {
   double ambiguity;        // Tag pose ambiguity
   int closestAprilTagID = 0;  //Tag ID with the greatest area
 
-  private double txToTurn = 0;
+  //private double txToTurn = 0;
   private double angleToTurn = 0;
 
   public int[] m_focusAprilTags;
@@ -128,9 +129,9 @@ public Robot() {
     LimelightHelpers.setupPortForwardingUSB(0); //Port Forwarding for 2026 Limelight 3a
     scanForAprilTags();
 
-    m_AutoChooser.setDefaultOption("None", Constants.AutoConstants.kAutoProgram[0]);
-    m_AutoChooser.addOption("Left Side Score", Constants.AutoConstants.kAutoProgram[1]);
-    m_AutoChooser.addOption("Center Score", Constants.AutoConstants.kAutoProgram[2]);
+    m_AutoChooser.setDefaultOption("None",      Constants.AutoConstants.kAutoProgram[0]);
+    m_AutoChooser.addOption("Left Side Score",  Constants.AutoConstants.kAutoProgram[1]);
+    m_AutoChooser.addOption("Center Score",     Constants.AutoConstants.kAutoProgram[2]);
     m_AutoChooser.addOption("Right Side Score", Constants.AutoConstants.kAutoProgram[3]);
     m_AutoChooser.addOption("Cen Score, Climb", Constants.AutoConstants.kAutoProgram[3]);
     SmartDashboard.putData("Auto Choices", m_AutoChooser);  //Sync the Autochooser
@@ -356,13 +357,6 @@ public Robot() {
     SmartDashboard.putNumber("RobotSpeed - rot", m_swerve.getRobotChassisSpeeds().omegaRadiansPerSecond);
   }
 
-
-  public Command turnTowardAprilTag(int[] tagIDs) {
-    m_focusAprilTags = tagIDs;
-    return new turnTowardsAprilPID(tagIDs, getPeriod(), m_swerve, this);
-  }
-
-
   public void scanForAprilTags() {
     fiducials = LimelightHelpers.getRawFiducials("");
     closestAprilTagID = 0;  //reset the closest tag ID each time
@@ -384,6 +378,14 @@ public Robot() {
         }
 
     }
+
+    if(fiducials.length>0)
+    {
+      limeLightPose = LimelightHelpers.getBotPose2d_wpiBlue("");
+      setOdoCommand(limeLightPose);  
+    }
+    
+        
     
     if( (distToCamera < Constants.AprilTagConstants.shootMaxRange[1]) && 
         (distToCamera > Constants.AprilTagConstants.shootMaxRange[0]) )   //just a test for the dist to hub 
@@ -475,64 +477,43 @@ public Robot() {
     return new double[]{distToTag, idUsed}; //for sim only
   }
 
-
+  public Command turnTowardAprilTag(int[] tagIDs) {
+    m_focusAprilTags = tagIDs;
+    return new turnTowardsAprilPID(tagIDs, getPeriod(), m_swerve, this);
+  }
 
 
   /** AUTO Stuff below here **/
   public Command getAutonomousCommand() {
 
     Command temp = new Command() {};
-    // Grabs the choser Auto from Shuffleboard in AutoInit
     
     switch (m_autoSelected) {
       case "None":
-        //Do Nothing
+        new InstantCommand(() -> setOdoCommand(Constants.AutoConstants.kStartingPoses[1]));
         break;
 
       case "LeftSideScore":
         temp = Commands.sequence(
-          new InstantCommand(() -> m_swerve.resetOdometry(new Pose2d(0,0, new Rotation2d(0)))),
-          new extendIntake(true, m_intake),          
-          new WaitCommand(.5),    
-          new extendIntake(false, m_intake),   
-          new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake),
-          shootBySpeedAuto(-2000),
-          new WaitCommand(.25),             
-          shootByDistAuto(4),
-          new retractAndIntake(true, false, m_intake, Constants.kSlideSpeedSlow, -Constants.c_defaultIntakeSpeed),
-          new WaitCommand(.5),
-          new retractAndIntake(false, false, m_intake, 0,0),
-          shootByDistAuto(4),          
-          new intakeFuelCmd(0, m_intake),
+          new InstantCommand(() -> setOdoCommand(Constants.AutoConstants.kStartingPoses[1])),
+          scoreAuto(),
           new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1));
         break;
 
       case "CenterScore":
         temp = Commands.sequence(
-          new InstantCommand(() -> m_swerve.resetOdometry(new Pose2d(0,0, new Rotation2d(0)))),
-          new InstantCommand(() -> System.out.println("Command 1:")),
+          new InstantCommand(() -> setOdoCommand(Constants.AutoConstants.kStartingPoses[2])),
           driveStraight(-1),
-          new InstantCommand(() -> m_swerve.resetOdometry(new Pose2d(0,0, new Rotation2d(0)))),
-          new extendIntake(true, m_intake),          
-          new WaitCommand(.5),    
-          new extendIntake(false, m_intake),   
-          new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake),
-          shootBySpeedAuto(-2000),
-          new WaitCommand(.25),             
-          shootByDistAuto(4),
-          new retractAndIntake(true, false, m_intake, Constants.kSlideSpeedSlow, -Constants.c_defaultIntakeSpeed),
-          new WaitCommand(.5),
-          new retractAndIntake(false, false, m_intake, 0,0),
-          shootByDistAuto(4),          
-          new intakeFuelCmd(0, m_intake),
+          new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1),
+          scoreAuto(),
           new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1));
         break;
 
       case "RightSideScore":
         temp = Commands.sequence(
-          new InstantCommand(() -> m_swerve.resetOdometry(new Pose2d(0,0, new Rotation2d(0)))),          
-          shootByDistAuto(5),
-          new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1));
+          new InstantCommand(() -> setOdoCommand(Constants.AutoConstants.kStartingPoses[1])),         
+          scoreAuto(),
+          new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1)) ;
         break;
 
       case "ShootCenterThenClimb":
@@ -554,6 +535,10 @@ public Robot() {
  
   public InstantCommand resetOdoCommand() {
     return new InstantCommand(() -> m_swerve.resetOdometry(new Pose2d(0,0, new Rotation2d(0))));
+  }
+
+  public InstantCommand setOdoCommand(Pose2d poseFromLimelight) {
+    return new InstantCommand(() -> m_swerve.resetOdometry(poseFromLimelight));
   }
 
   public Command driveStraight(double dist) {
@@ -614,6 +599,42 @@ public Robot() {
       new InstantCommand(() -> System.out.println("fieldRelative")),
         new InstantCommand(() -> isFieldRelative=!isFieldRelative)
     );
+  }
+
+  /* This function is the standard 'score in auto' function
+   * Extends intake
+   * Spins up Intake & REVERSE Shoot - the goal is to get all the fuel in the hopper
+   * Shoot - 1st round
+   * Retract Hopper to push fuel further towards the hopper
+   */
+  public Command scoreAuto() {   
+    return Commands.sequence(
+      new extendIntake(true, m_intake),   
+        printCmd("Extend"),    
+      new WaitCommand(.5), 
+        printCmd("Elapse 0.5 Seconds"),   
+      new extendIntake(false, m_intake),  
+        printCmd("Disable Slide"), 
+      new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake),
+        printCmd("Start Intake"),
+      shootBySpeedAuto(-2000),           
+        printCmd("Reverse Shoot"),  
+      shootByDistAuto(4),
+        printCmd("Shoot"),
+      new retractAndIntake(true, false, m_intake, Constants.kSlideSpeedSlow, -Constants.c_defaultIntakeSpeed),
+        printCmd("Retract Slowly"),
+      new WaitCommand(.5),
+        printCmd("retracting..."),
+      new retractAndIntake(false, false, m_intake, 0,0),
+        printCmd("Stop Retract"),
+      shootByDistAuto(4), 
+        printCmd("Shoot Again"),         
+      new intakeFuelCmd(0, m_intake),
+        printCmd("Stop Intake"));    
+  }
+
+  public Command printCmd(String cmdName) {
+    return new InstantCommand(() -> System.out.println(cmdName));
   }
 
 }

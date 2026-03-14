@@ -18,11 +18,7 @@ public class intake extends SubsystemBase {
   /* Intake Subsystem Constants */
   public static final int k_slideMotorPortA = 26;
   public static final int k_intakeMotorPortA = 32;
-  //public static final double k_slideEncOffsetA = 0;
-
-  public static final double k_slideMax = 1000;   //prevent the slide going out past this point
-  public static final double k_slideMin = 0;      //prevent the slide going in past this point (assume starting pos=0)
-
+  
   public static final double Kpslide = 0.5;
   public static final double slideMaxVelocity = Math.PI;
   public static final double slideMaxAccel = Math.PI;
@@ -46,10 +42,12 @@ public class intake extends SubsystemBase {
   private RelativeEncoder m_slideEncoderA;
   private double m_slidePosition;
   private double m_slideOffset = 0;
-  private boolean m_slideFullRetracted = false;
-  private final double c_slideStowPos = 100;
-      
-  
+  private boolean m_slideFullyRetracted = true;
+  private boolean m_slideFullyExtended = false;
+
+  private final double c_slideStowPos = 0;
+  private final double c_slideOutPos = 35;
+   
 
   public intake() {
 
@@ -76,34 +74,28 @@ public class intake extends SubsystemBase {
 
   @Override
   public void periodic() {
-    m_slidePosition = m_slideEncoderA.getPosition();    //gets raw position from Slide Encoder
-    
+    m_slidePosition = m_slideEncoderA.getPosition();    //gets raw position from Slide Encoder    
     m_actualIntakeSpeed = intakeMotorA.get();
 
-    m_slideFullRetracted = (m_slidePosition < c_slideStowPos );
+    m_slideFullyRetracted = (m_slidePosition <= c_slideStowPos );
+    m_slideFullyExtended = (m_slidePosition >= c_slideOutPos);
 
     //Publish Stuff to the Dashboard
     SmartDashboard.putNumber("IntakeSpeed", m_desiredIntakeSpeed);
-    SmartDashboard.putNumber("slideAActualSpeed", m_actualIntakeSpeed);
-    intakeDiags.publishMotorData();
-    SmartDashboard.putNumber("desiredSlideMotorspeed", m_desiredSlideSpeed);
+    SmartDashboard.putNumber("Slide Speed", m_actualIntakeSpeed);
+    SmartDashboard.putNumber("Desired Slide Speed", m_desiredSlideSpeed);
     SmartDashboard.putNumber("slidePosition", m_slidePosition);
     SmartDashboard.putNumber("slidePosOffset", m_slideOffset);
-    SmartDashboard.putBoolean("SlideFullyIn?", m_slideFullRetracted);
+    SmartDashboard.putBoolean("SlideFullyIn?", m_slideFullyRetracted);
+    SmartDashboard.putBoolean("SlideFullyOut?", m_slideFullyExtended);
+    
+    intakeDiags.publishMotorData();
     slideDiags.publishMotorData();
-
+    
     intakeMotorA.set(m_desiredIntakeSpeed);            
     slideMotorA.set(m_desiredSlideSpeed);
 
   }
-
-  /*public void setDesiredslideAngleA(double angle) {
-    desiredslideDistanceA = angle + slideAngleOffsetA;
-  }*/
-  
-    /*public void setDesiredslideAngleB(double angle) {
-    desiredslideDistanceB= angle + slideAngleOffsetB;
-  }*/
 
   public void incIntakeSlideOffset() {
     m_slideOffset = m_slideOffset + c_slideOffset;
@@ -113,38 +105,25 @@ public class intake extends SubsystemBase {
     m_slideOffset = m_slideOffset - c_slideOffset;
   }
 
+  public void setIntakeSpeed(double speed) {
+    m_desiredIntakeSpeed = speed;
+  }
 
-  
+  public void setDesiredSlideSpeed(double speed) {
+    m_desiredSlideSpeed = speed;
+  }
 
-    /*public void extend() {
-      setDesiredslideAngleA(k_slideDistanceSetpointA[1]);
-      //setDesiredslideAngleB(k_slideDistanceSetpointB[1]);
-    }
-
-    public void retract() {
-      setDesiredslideAngleA(k_slideDistanceSetpointA[0]);
-      //setDesiredslideAngleB(k_slideDistanceSetpointB[0]);
-    }*/
-
-    public void setIntakeSpeed(double speed) {
-      m_desiredIntakeSpeed = speed;
-    }
-
-    public void setDesiredSlideSpeed(double speed) {
-      m_desiredSlideSpeed = speed;
-    }
-
-    public double getIntakeSpeed() {
-      return m_actualIntakeSpeed;
-    }
+  public double getIntakeSpeed() {
+    return m_actualIntakeSpeed;
+  }
     
-    public void initDefaultCommand() {
-      // When Idle, set the speeds to zero            
-      Command initSequence = Commands.sequence(
-        new InstantCommand(() -> setIntakeSpeed(0)));
-        
-      initSequence.addRequirements(this);
-      setDefaultCommand(initSequence);      
-    }
+  public void initDefaultCommand() {
+    // When Idle, set the speeds to zero            
+    Command initSequence = Commands.sequence(
+      new InstantCommand(() -> setIntakeSpeed(0)));
+      
+    initSequence.addRequirements(this);
+    setDefaultCommand(initSequence);      
+  }
 
 }
