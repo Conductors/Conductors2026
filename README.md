@@ -7,6 +7,9 @@
 3} line 179 in robot. Wasnt working, might be fixed now but needs test
 4} Need to get YAW for angle change
 
+Things to change before comp
+1. Turn towards april tags, center id numbers
+
 
 
 Dist.   rpm for shooter	

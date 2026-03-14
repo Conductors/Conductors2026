@@ -27,6 +27,7 @@ public class shooterSubsystem extends SubsystemBase {
     private int shooterMotorAPort   = 25;
     private int shooterMotorBPort   = 24;
     private int conveyorMotorPort  = 30; 
+    private int windmillMotorPort  = 35;
 
     private static final double c_ShooterMaxSpeed = 5000;
 

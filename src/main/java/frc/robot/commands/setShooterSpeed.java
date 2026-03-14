@@ -2,6 +2,7 @@ package frc.robot.commands;
 
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Robot;
 import frc.robot.subsystems.shooterSubsystem;
 
 public class setShooterSpeed extends Command {
@@ -13,6 +14,8 @@ public class setShooterSpeed extends Command {
   private double m_distanceFromTag;
   private Timer m_delayTimer;
   private double c_MotorBDelay = 1.5;
+  private static int[] aprilTagList = {1, 2, 5};
+  private Robot robotRef;
 
 
   /**
@@ -29,11 +32,11 @@ public class setShooterSpeed extends Command {
     addRequirements(m_ShooterSubsystem);
   }
 
-  public setShooterSpeed(shooterSubsystem ss, boolean useDistance, double dist) {
+  public setShooterSpeed(shooterSubsystem ss, boolean useDistance, Robot robot) {
     m_speedCmd = 0;
     m_ShooterSubsystem = ss;
     m_useDistance = true;
-    m_distanceFromTag = dist;
+    robotRef = robot;
     m_delayTimer = new Timer();
     addRequirements(m_ShooterSubsystem);
   }
@@ -41,8 +44,18 @@ public class setShooterSpeed extends Command {
   @Override
   public void initialize() {
     //Run once, at the start of the command
-    if(m_useDistance)
-      m_speedCmd = m_ShooterSubsystem.calcSpeed(m_distanceFromTag);
+    if(m_useDistance){
+    double distanceFromTag = robotRef.getDistToTag(aprilTagList);
+    System.out.println("distFromTag="+distanceFromTag);
+    
+    if (distanceFromTag == 0){
+      m_distanceFromTag = 1.5;
+    }else{
+      m_distanceFromTag = distanceFromTag;
+    }
+    System.out.println(distanceFromTag);
+    m_speedCmd = m_ShooterSubsystem.calcSpeed(m_distanceFromTag);
+  }
 
     m_delayTimer.reset();
     m_delayTimer.start();

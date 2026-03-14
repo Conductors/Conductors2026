@@ -125,6 +125,7 @@ public Robot() {
   @Override
   public void robotInit() {
     LimelightHelpers.setupPortForwardingUSB(0); //Port Forwarding for 2026 Limelight 3a
+    scanForAprilTags();
 
     m_AutoChooser.setDefaultOption("None", Constants.AutoConstants.kAutoProgram[0]);
     m_AutoChooser.addOption("Auto 1", Constants.AutoConstants.kAutoProgram[1]);
@@ -168,8 +169,8 @@ public Robot() {
     redOne.onFalse(new intakeFuelCmd(0, m_intake));
      yellowOne.onTrue(new setShooterSpeed(Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
               .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
-    // yellowOne.onTrue(new setShooterSpeed(m_ShooterSubsystem, true, fiducials[closestAprilTagID].distToCamera))  (referencing fiducials here is a null pointer on robot)
-    //           .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
+    // yellowOne.onTrue(new setShooterSpeed(m_ShooterSubsystem, true, this)) 
+    //            .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
     greenOne.onTrue(new climberCommand(climbLevel.e_levelOne, m_climbSubsystem));  
     //blueOne.onTrue(new climberCommand(climbLevel.e_levelTwo, m_climbSubsystem));
     blueOne.onTrue(new setClimbSpeed(0.6, m_climbSubsystem));
@@ -503,8 +504,9 @@ public Command climb(double speed) {
       for(RawFiducial fiducial : fiducials)   //cycle through all detected April Tags
       {
         for(int tagID : tagIDs) {             //determine if any of the detect tags are in the list of inters
+          System.out.println(fiducial.id + ", " + tagID);
           if (fiducial.id == tagID) {
-            distToTag = fiducial.distToCamera;
+            distToTag = fiducial.distToRobot;
             System.out.println(distToTag);
           } else {
             //txToTurn = 0;
@@ -517,7 +519,7 @@ public Command climb(double speed) {
     SmartDashboard.putNumber("distToTag", distToTag);
 
     //return distToTag;
-    return 0.82; //for sim only
+    return distToTag; //for sim only
   }
 
 }
