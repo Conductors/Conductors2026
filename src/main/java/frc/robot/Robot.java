@@ -100,6 +100,7 @@ public class Robot extends TimedRobot {
   private final SlewRateLimiter m_rotLimiter    = new SlewRateLimiter(3);
 
   private Command m_autonomousCommand;
+  private Command m_autonomousCommand2;
 
   private String m_autoSelected;
   private final SendableChooser<String> m_AutoChooser = new SendableChooser<>();
@@ -218,11 +219,15 @@ public Robot() {
 
     m_autoSelected = m_AutoChooser.getSelected();
     m_autonomousCommand = getAutonomousCommand();
+    m_autonomousCommand2 = getAutonomousCommand2();
     
     // schedule the autonomous command (example)
     if (m_autonomousCommand != null) {
       m_autonomousCommand.schedule();
     }    
+    if(m_autonomousCommand2 != null){
+      m_autonomousCommand2.schedule();
+    }
   }
 
   @Override
@@ -494,26 +499,32 @@ public Robot() {
         break;
 
       case "LeftSideScore":
-        temp = Commands.sequence(
-          new InstantCommand(() -> setOdoCommand(Constants.AutoConstants.kStartingPoses[1])),
-          scoreAuto(),
-          new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1));
+        temp = 
+          Commands.sequence(
+           new InstantCommand(() -> setOdoCommand(Constants.AutoConstants.kStartingPoses[1])),
+            scoreAuto(),
+           new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1)
+          );
         break;
 
       case "CenterScore":
-        temp = Commands.sequence(
-          new InstantCommand(() -> setOdoCommand(Constants.AutoConstants.kStartingPoses[2])),
-          driveStraight(-1),
-          new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1),
-          scoreAuto(),
-          new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1));
+        temp = 
+          Commands.sequence(
+           new InstantCommand(() -> setOdoCommand(Constants.AutoConstants.kStartingPoses[2])),
+            driveStraight(-1),
+            new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1),
+            scoreAuto(),
+            new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1)
+        );
         break;
 
       case "RightSideScore":
-        temp = Commands.sequence(
-          new InstantCommand(() -> setOdoCommand(Constants.AutoConstants.kStartingPoses[1])),         
-          scoreAuto(),
-          new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1)) ;
+        temp =
+          Commands.sequence(
+            new InstantCommand(() -> setOdoCommand(Constants.AutoConstants.kStartingPoses[1])),         
+            scoreAuto(),
+            new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1)
+        );
         break;
 
       case "ShootCenterThenClimb":
@@ -525,6 +536,44 @@ public Robot() {
           driveStraight(2.18), //86.6 inches
           climb(0.6),
           new InstantCommand(() -> System.out.println("Done !")));
+        break;
+      
+      case "CrossToShooter":
+
+        break;
+
+      default:
+        break;
+    }
+    return temp;
+  }
+  public Command getAutonomousCommand2() {
+
+    Command temp = new Command() {};
+    
+    switch (m_autoSelected) {
+      case "None":
+        temp = null;
+        break;
+
+      case "LeftSideScore":
+        temp = shooter();
+        break;
+
+      case "CenterScore":
+        temp = shooter();
+        break;
+
+      case "RightSideScore":
+        temp =shooter();
+        break;
+
+      case "ShootCenterThenClimb":
+        temp = null;
+        break;
+      
+      case "CrossToShooter":
+        temp = null;
         break;
 
       default:
@@ -569,7 +618,7 @@ public Robot() {
     return Commands.sequence(
             //new setShooterSpeed(m_ShooterSubsystem, true, this),
             shootFuel(speed), 
-            new WaitCommand(1),
+            new WaitCommand(.5),
             stopShootFuel());
   }
 
@@ -607,29 +656,31 @@ public Robot() {
    * Shoot - 1st round
    * Retract Hopper to push fuel further towards the hopper
    */
+  public Command shooter(){
+    return Commands.sequence(
+      new WaitCommand(.25), //Wait For Intake To Lower Might not be needed
+      shootBySpeedAuto(-2500), //Exhale balls in shooter Takes .5seconds
+      shootByDistAuto(4)
+    );
+  }
   public Command scoreAuto() {   
     return Commands.sequence(
-      new extendIntake(true, m_intake),   
+      new extendIntake(true, m_intake),   //startExtention
         printCmd("Extend"),    
-      new WaitCommand(.5), 
+      new WaitCommand(.5),        //GiveTImeForExtention
         printCmd("Elapse 0.5 Seconds"),   
-      new extendIntake(false, m_intake),  
+      new extendIntake(false, m_intake),   //stopExtention
         printCmd("Disable Slide"), 
-      new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake),
+      new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake), //LaunchBallsBackIntoHopper
         printCmd("Start Intake"),
-      shootBySpeedAuto(-2000),           
-        printCmd("Reverse Shoot"),  
-      shootByDistAuto(4),
-        printCmd("Shoot"),
-      new retractAndIntake(true, false, m_intake, Constants.kSlideSpeedSlow, -Constants.c_defaultIntakeSpeed),
+      new WaitCommand(.5), //waitDorballsToBeShotOut
+      new retractAndIntake(true, false, m_intake, Constants.kSlideSpeedSlow, -Constants.c_defaultIntakeSpeed), //Bring Intake in
         printCmd("Retract Slowly"),
-      new WaitCommand(.5),
+      new WaitCommand(.5),  //GiveTimeToComeIn
         printCmd("retracting..."),
-      new retractAndIntake(false, false, m_intake, 0,0),
+      new retractAndIntake(false, false, m_intake, 0,0), //StopRetracting
         printCmd("Stop Retract"),
-      shootByDistAuto(4), 
-        printCmd("Shoot Again"),         
-      new intakeFuelCmd(0, m_intake),
+      new intakeFuelCmd(0, m_intake), //stopIntaking
         printCmd("Stop Intake"));    
   }
 

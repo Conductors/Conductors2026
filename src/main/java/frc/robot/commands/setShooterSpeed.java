@@ -48,7 +48,7 @@ public class setShooterSpeed extends Command {
     System.out.println("distFromTag="+distanceFromTag);
     
     if (distanceFromTag == 0){
-      m_distanceFromTag = 1.5;
+      m_distanceFromTag = 2.2;
     }else{
       m_distanceFromTag = distanceFromTag;
     }
