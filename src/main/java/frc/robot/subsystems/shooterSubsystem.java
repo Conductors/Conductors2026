@@ -53,7 +53,7 @@ public class shooterSubsystem extends SubsystemBase {
     private ProfiledPIDController m_ShooterAPID;
     
     private final SimpleMotorFeedforward m_shooterFeedForward = new SimpleMotorFeedforward(0.5,0);
-    private static final double Kp_shooterA = .00025;
+    private static final double Kp_shooterA = .0001; //.00025
     private static final double Ki_shooterA = 0;
     private static final double Kd_shooterA = 0;
     private static final double Kv_shooterA = 36000;

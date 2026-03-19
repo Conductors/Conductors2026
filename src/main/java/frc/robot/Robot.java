@@ -134,7 +134,8 @@ public Robot() {
     m_AutoChooser.addOption("Left Side Score",  Constants.AutoConstants.kAutoProgram[1]);
     m_AutoChooser.addOption("Center Score",     Constants.AutoConstants.kAutoProgram[2]);
     m_AutoChooser.addOption("Right Side Score", Constants.AutoConstants.kAutoProgram[3]);
-    m_AutoChooser.addOption("Cen Score, Climb", Constants.AutoConstants.kAutoProgram[3]);
+    m_AutoChooser.addOption("Cen Score, Climb", Constants.AutoConstants.kAutoProgram[4]);
+    m_AutoChooser.addOption("RIght Side Shooter and Move", Constants.AutoConstants.kAutoProgram[5]);
     SmartDashboard.putData("Auto Choices", m_AutoChooser);  //Sync the Autochooser
 
 
@@ -527,6 +528,14 @@ public Robot() {
         );
         break;
 
+      case "RightSideScoreAndMove":
+        temp =
+          Commands.sequence(
+            new InstantCommand(() -> setOdoCommand(Constants.AutoConstants.kStartingPoses[1])),         
+            scoreAuto()
+        );
+        break;
+
       case "ShootCenterThenClimb":
         temp = Commands.sequence(
           new InstantCommand(() -> m_swerve.resetOdometry(new Pose2d(0,0, new Rotation2d(0)))),
@@ -575,6 +584,15 @@ public Robot() {
       case "CrossToShooter":
         temp = null;
         break;
+      
+        
+      case "RightSideScoreAndMove":
+        temp = Commands.sequence(
+        shooter(), 
+        moveAuto(),
+         new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1)
+        );
+        break;
 
       default:
         break;
@@ -618,7 +636,7 @@ public Robot() {
     return Commands.sequence(
             //new setShooterSpeed(m_ShooterSubsystem, true, this),
             shootFuel(speed), 
-            new WaitCommand(.5),
+            new WaitCommand(.75),
             stopShootFuel());
   }
 
@@ -658,9 +676,9 @@ public Robot() {
    */
   public Command shooter(){
     return Commands.sequence(
-      new WaitCommand(.25), //Wait For Intake To Lower Might not be needed
-      shootBySpeedAuto(-2500), //Exhale balls in shooter Takes .5seconds
-      shootByDistAuto(4)
+      new WaitCommand(.25),
+      shootBySpeedAuto(-2500), 
+      shootByDistAuto(6)
     );
   }
   public Command scoreAuto() {   
@@ -673,7 +691,7 @@ public Robot() {
         printCmd("Disable Slide"), 
       new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake), //LaunchBallsBackIntoHopper
         printCmd("Start Intake"),
-      new WaitCommand(.5), //waitDorballsToBeShotOut
+      new WaitCommand(2), //waitDorballsToBeShotOut
       new retractAndIntake(true, false, m_intake, Constants.kSlideSpeedSlow, -Constants.c_defaultIntakeSpeed), //Bring Intake in
         printCmd("Retract Slowly"),
       new WaitCommand(.5),  //GiveTimeToComeIn
@@ -682,6 +700,20 @@ public Robot() {
         printCmd("Stop Retract"),
       new intakeFuelCmd(0, m_intake), //stopIntaking
         printCmd("Stop Intake"));    
+  }
+
+  public Command moveAuto() {
+    return Commands.sequence(
+      new driveSpinwaysPID(-.75, 0.02, m_swerve),
+      new driveStraightPID(2.5, 0.02, m_swerve),
+       new extendIntake(true, m_intake),  
+        printCmd("Extend"),    
+      new WaitCommand(.5),
+      new extendIntake(false, m_intake)
+      // new driveSpinwaysPID(Math.PI/2, 0.02, m_swerve),
+      // new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake),
+      // new driveStraightPID(2.5, 0.02, m_swerve)
+    );
   }
 
   public Command printCmd(String cmdName) {

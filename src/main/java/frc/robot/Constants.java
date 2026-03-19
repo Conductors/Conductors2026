@@ -73,7 +73,7 @@ public final class Constants {
             new TrapezoidProfile.Constraints(
                 kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
 
-        public static final String[] kAutoProgram = {"None", "LeftSideScore", "CenterScore", "RightSideScore", "ShootCenterThenClimb"};
+        public static final String[] kAutoProgram = {"None", "LeftSideScore", "CenterScore", "RightSideScore", "ShootCenterThenClimb", "RightSideScoreAndMove",};
         public static final Pose2d[] kStartingPoses = {
             new Pose2d(0,0, new Rotation2d(0)),   //Default
             new Pose2d(2,2, new Rotation2d(Math.PI/3)),   //Left Side Start
