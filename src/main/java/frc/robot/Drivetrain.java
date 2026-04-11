@@ -4,14 +4,6 @@
 
 package frc.robot;
 
-import com.pathplanner.lib.path.*;
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.config.PIDConstants;
-import com.pathplanner.lib.config.RobotConfig;
-import com.pathplanner.lib.controllers.PPHolonomicDriveController;
-import com.pathplanner.lib.events.EventTrigger;
-
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -23,11 +15,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.motorDiagnostics;
 
@@ -54,7 +42,7 @@ public class Drivetrain extends SubsystemBase {
   private final motorDiagnostics bLMotorDiags = new motorDiagnostics(m_backLeft.m_driveMotor, "BL Motor");
   private final motorDiagnostics bRMotorDiags = new motorDiagnostics(m_backRight.m_driveMotor, "BR Motor");
 
-  private RobotConfig mRobotconfig;
+  //private RobotConfig mRobotconfig;
 
   public final ADXRS450_Gyro m_gyro = new ADXRS450_Gyro();
 
@@ -79,15 +67,6 @@ public class Drivetrain extends SubsystemBase {
 
   public Drivetrain() {
     m_gyro.reset();
-
-    configurePathPlanner();
-
-    //This EventTrigger is supposed to run when the PathPlanner path crosses a mid point
-    new EventTrigger("testEvent1").whileTrue(new InstantCommand(() -> System.out.println("PathPlanner Event Trigger")));
-
-
-    //Create a NamedCommand so that we can use this in the event tag
-    NamedCommands.registerCommand("testEvent1", new InstantCommand(() -> System.out.println("PathPlanner Named Command")));
 
     SmartDashboard.putData("Swerve Drive", new Sendable() {
       @Override
@@ -305,45 +284,5 @@ public class Drivetrain extends SubsystemBase {
           Constants.kDefaultPeriod);
   }
 
-  public void configurePathPlanner() {
-    // Load the RobotConfig from the GUI settings. You should probably store this in your Constants file
-    
-    try{
-      mRobotconfig = RobotConfig.fromGUISettings();
-    } catch (Exception e) {
-      // Handle exception as needed
-      e.printStackTrace();
-    }
- 
-    AutoBuilder.configure(
-            this::getPose, 
-            this::resetOdometry,
-            this::getRobotChassisSpeeds,
-            this::driveRobotRelative,
-            new PPHolonomicDriveController( // Holonomic drive controller                                                 
-                        new PIDConstants(Constants.AutoConstants.kPP_PXController, 0.0, 0.0), // Translation PID constants
-                        new PIDConstants(Constants.AutoConstants.kPP_PThetaController, 0.0, 0.0)), // Rotation PID constants
-            mRobotconfig, 
-            () -> {
-              return false; // Boolean supplier that controls when the path will be mirrored for the red alliance
-            },
-            this);
-        
-
-  }
-  public Command getPathPlannerCommand() {
-    try{
-        // Load the path you want to follow using its name in the GUI
-        //PathPlannerPath path = PathPlannerPath.fromPathFile("testPath1"); //forward 1.5m, then stop
-        PathPlannerPath path = PathPlannerPath.fromPathFile("fwd_left");    //forward 1.5m, the left 1.5m (heading stays 0 deg)
-        //PathPlannerPath path = PathPlannerPath.fromPathFile("spin_in_place");
-
-
-        // Create a path following command using AutoBuilder. This will also trigger event markers.
-        return AutoBuilder.followPath(path);
-    } catch (Exception e) {
-        DriverStation.reportError("Big oops: " + e.getMessage(), e.getStackTrace());
-        return Commands.none();
-    }
-  }
+  
 }
