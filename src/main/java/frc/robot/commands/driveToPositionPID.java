@@ -66,7 +66,7 @@ private final ProfiledPIDController m_PIDControllerRot;
   @Override
   public void initialize() {
     //Run once, at the start of the command
-    m_initialPose = lDrivetrain.m_odometry.getPoseMeters();
+    m_initialPose = lDrivetrain.m_odometry.getEstimatedPosition();
 
     System.out.println("Initial X= " + m_initialPose.getX());
     System.out.println("Initial Y= " + m_initialPose.getY());
@@ -80,7 +80,7 @@ private final ProfiledPIDController m_PIDControllerRot;
   @Override
   public void execute() {
     //run repeatedly, until isFinished() returns true
-    m_currentPose = lDrivetrain.m_odometry.getPoseMeters();
+    m_currentPose = lDrivetrain.m_odometry.getEstimatedPosition();
     System.out.println("Current X= " + m_currentPose.getX());
     System.out.println("Current Y= " + m_currentPose.getY());
     System.out.println("Current Rot= " + m_currentPose.getRotation().getRadians());

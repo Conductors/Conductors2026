@@ -23,19 +23,27 @@ public class setShooterSpeed extends Command {
    * @param cs The coralSubsystem subsystem to control
    * @param useDist Ignore speed input, calculate the speed based on Distance (boolean)
   */
-  public setShooterSpeed(double speed, shooterSubsystem ss) {
+  public setShooterSpeed(double speed, shooterSubsystem ss, Robot robot, boolean isShooterRunning) {
     m_speedCmd = speed;
     m_ShooterSubsystem = ss;
+    System.out.println("running");
+    // if(speed > 0){
+    //  robot.shooterRunning = true;
+    // }else{
+    //   robot.shooterRunning = false;
+    // }
+    robot.shooterRunning = isShooterRunning;
     m_useDistance = false;
     m_delayTimer = new Timer();
     addRequirements(m_ShooterSubsystem);
   }
 
-  public setShooterSpeed(shooterSubsystem ss, boolean useDistance, Robot robot) {
+  public setShooterSpeed(shooterSubsystem ss, boolean useDistance, Robot robot, boolean isShooterRunning) {
     m_speedCmd = 0;
     m_ShooterSubsystem = ss;
     m_useDistance = true;
     robotRef = robot;
+    robot.shooterRunning = isShooterRunning;
     m_delayTimer = new Timer();
     addRequirements(m_ShooterSubsystem);
   }
@@ -44,16 +52,17 @@ public class setShooterSpeed extends Command {
   public void initialize() {
     //Run once, at the start of the command
     if(m_useDistance){
-    double distanceFromTag = robotRef.getDistanceFromHubCenter();
-    System.out.println("distFromTag="+distanceFromTag);
+      // double distanceFromTag = robotRef.getDistanceFromHubCenter();
+      double distanceFromTag = robotRef.GetDistanceFromHubWithPosition();
+      System.out.println("distFromTag="+distanceFromTag);
     
-    if (distanceFromTag == 0){
+     if (distanceFromTag == 0){
       m_distanceFromTag = 2.2;
     }else{
       m_distanceFromTag = distanceFromTag;
     }
     System.out.println(distanceFromTag);
-    m_speedCmd = m_ShooterSubsystem.calcSpeed(m_distanceFromTag);
+    m_speedCmd = -m_ShooterSubsystem.calcSpeed(m_distanceFromTag);
   }
 
     m_delayTimer.reset();
@@ -77,7 +86,7 @@ public class setShooterSpeed extends Command {
     and when it's at goal, this END function will trigger B motor to start.  Moved
     the motor B speed command to the end() function (previously in  execute() )
     */
-    m_ShooterSubsystem.setDesiredMotorBSpeed(m_speedCmd);   
+    m_ShooterSubsystem.setDesiredMotorBSpeed(-m_speedCmd);   
     System.out.println("end Motor B commanded");
 
     m_delayTimer.stop();

@@ -10,6 +10,7 @@ public class extendIntake extends Command {
     private boolean extend = false;
     private double m_speedCmd = 0;
 
+
     
 
   /**
@@ -26,6 +27,7 @@ public class extendIntake extends Command {
   public extendIntake(boolean extended, intake is) {
     m_intakeSubsystem = is;
     extend = extended;
+    System.out.println("runningScoreAuto");
     addRequirements(m_intakeSubsystem);
   }
 
@@ -34,6 +36,7 @@ public class extendIntake extends Command {
     //Run once, at the start of the command
     if (extend == true) {
         m_speedCmd = Constants.kSlideSpeed;
+        System.out.println("EXTEND");
     } else {
         m_speedCmd = 0;
     }

@@ -2,20 +2,15 @@
 
 
 
-Things to change before comp
-1. Blue Alliance april tag ids
 
 
 intake 
 37.57 (all the way in)
 35.35 (ok height)
 
+//COme up longer
 
 
-
-Dist.   rpm for shooter	
-1.8 =  3400
-y = 1200*x^2 -2200*x + 3600     //this is the equation that fits the data above
 
 If Climber - 
     un-comment the climb functions
@@ -23,3 +18,7 @@ If Climber -
 
 Wish List:
     LEDs signalling aligned
+
+Radio Checksum
+77575f490fa0a07503e5235cdd85118b0a81c69bc0b8db7a9fc131ea2d8c6315
+

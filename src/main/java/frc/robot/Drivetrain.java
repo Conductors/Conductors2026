@@ -5,6 +5,10 @@
 package frc.robot;
 
 import com.pathplanner.lib.path.*;
+
+import choreo.auto.AutoFactory;
+import choreo.trajectory.SwerveSample;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.config.PIDConstants;
@@ -12,6 +16,7 @@ import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.events.EventTrigger;
 
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -64,8 +69,8 @@ public class Drivetrain extends SubsystemBase {
       new SwerveDriveKinematics(
           m_frontLeftLocation, m_frontRightLocation, m_backLeftLocation, m_backRightLocation);
 
-  public final SwerveDriveOdometry m_odometry =
-      new SwerveDriveOdometry(
+    public final SwerveDrivePoseEstimator m_odometry =
+      new SwerveDrivePoseEstimator(
           m_kinematics,
           new Rotation2d(m_gyro.getRotation2d().getRadians()),
           new SwerveModulePosition[] {
@@ -73,7 +78,18 @@ public class Drivetrain extends SubsystemBase {
             m_frontRight.getPosition(),
             m_backLeft.getPosition(),
             m_backRight.getPosition()
-          });
+          },
+          new Pose2d());
+  // public final SwerveDriveOdometry m_odometry =
+  //     new SwerveDriveOdometry(
+  //         m_kinematics,
+  //         new Rotation2d(m_gyro.getRotation2d().getRadians()),
+  //         new SwerveModulePosition[] {
+  //           m_frontLeft.getPosition(),
+  //           m_frontRight.getPosition(),
+  //           m_backLeft.getPosition(),
+  //           m_backRight.getPosition()
+  //         });
 
   public Pose2d robotPose2d = new Pose2d();
 
@@ -331,6 +347,7 @@ public class Drivetrain extends SubsystemBase {
         
 
   }
+
   public Command getPathPlannerCommand() {
     try{
         // Load the path you want to follow using its name in the GUI

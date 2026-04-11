@@ -39,23 +39,25 @@ private Timer m_timer = new Timer();
 
     m_PIDController =
     new ProfiledPIDController(
-      5, 
+      2, 
       0,
       0, 
       new TrapezoidProfile.Constraints(
                   9,
                     48));
-  m_PIDController.setTolerance(.01);
+  m_PIDController.setTolerance(.13);
   }
 
   @Override
   public void initialize() {
     //Run once, at the start of the command
-    m_initialPos = lDrivetrain.m_odometry.getPoseMeters().getRotation().getRadians();
+    m_initialPos = lDrivetrain.m_odometry.getEstimatedPosition().getRotation().getRadians();
     
     wrappedAngle = MathUtil.angleModulus(lRobot.getAprilTx(l_tagsToCheck)); //Wrap the angle to be between -pi and pi
     
     getAngleChange = MathUtil.angleModulus((lRobot.GetAngleChange()));
+
+    double angleToLook = MathUtil.angleModulus(lRobot.GetAngleChangeToHub());
 
     //System.out.print("wrappedAngle = ");
     //System.out.println(wrappedAngle);
@@ -63,17 +65,17 @@ private Timer m_timer = new Timer();
     //System.out.print("InitPos = ");
     //System.out.println(m_initialPos);
      
-    m_goalPos = m_initialPos + wrappedAngle + getAngleChange;
+    m_goalPos = -angleToLook;
 
     System.out.print("GoalPos = ");
-    System.out.println(m_goalPos);
+    System.out.println(MathUtil.angleModulus(m_goalPos));
 
   }
 
   @Override
   public void execute() {
     //run repeatedly, until isFinished() returns true
-    m_currentPos = lDrivetrain.m_odometry.getPoseMeters().getRotation().getRadians();
+    m_currentPos = lDrivetrain.m_odometry.getEstimatedPosition().getRotation().getRadians();
     //m_currDistance = Math.abs(m_currentPos - m_initialPos);
     System.out.print("Current Pos = ");
     System.out.println(m_currentPos);

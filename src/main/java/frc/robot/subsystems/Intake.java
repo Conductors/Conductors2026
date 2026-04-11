@@ -10,11 +10,15 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.motorDiagnostics;
+import frc.robot.Constants;
+import frc.robot.Robot;
 
 
 public class intake extends SubsystemBase {
   
+  private Robot m_robot;
   /* Intake Subsystem Constants */
   public static final int k_slideMotorPortA = 26;
   public static final int k_intakeMotorPortA = 32;
@@ -45,12 +49,13 @@ public class intake extends SubsystemBase {
   private boolean m_slideFullyRetracted = true;
   private boolean m_slideFullyExtended = false;
 
-  private final double c_slideStowPos = 0;
-  private final double c_slideOutPos = 35;
+  private final double c_slideStowPos = 5;
+  private final double c_slideOutPos = 33;
+  private final double c_slideShootOutPos = 25;
    
 
-  public intake() {
-
+  public intake(Robot robot) {
+    m_robot = robot;
     intakeMotorA = new SparkMax(k_intakeMotorPortA, SparkLowLevel.MotorType.kBrushless);
     intakeDiags = new motorDiagnostics(intakeMotorA, "Intake Motor Diag");
     
@@ -76,6 +81,8 @@ public class intake extends SubsystemBase {
   public void periodic() {
     m_slidePosition = m_slideEncoderA.getPosition();    //gets raw position from Slide Encoder    
     m_actualIntakeSpeed = intakeMotorA.get();
+    SmartDashboard.putNumber("slidePercent", Math.round(m_slidePosition/c_slideOutPos * 100));
+
 
     m_slideFullyRetracted = (m_slidePosition <= c_slideStowPos );
     m_slideFullyExtended = (m_slidePosition >= c_slideOutPos);
@@ -92,9 +99,23 @@ public class intake extends SubsystemBase {
     intakeDiags.publishMotorData();
     slideDiags.publishMotorData();
     
-    intakeMotorA.set(m_desiredIntakeSpeed);            
-    slideMotorA.set(m_desiredSlideSpeed);
+   
 
+    intakeMotorA.set(m_desiredIntakeSpeed); 
+    // if (m_robot.shooterRunning && m_slidePosition > c_slideShootOutPos){
+    //     m_desiredSlideSpeed = -.25; 
+    //   }     
+    
+
+    if(((m_slideFullyRetracted && m_desiredSlideSpeed < 0) || (m_slideFullyExtended && m_desiredSlideSpeed > 0)) && (!m_robot.yHeld)){
+      slideMotorA.set(0);
+    }else{
+      slideMotorA.set(m_desiredSlideSpeed);
+            
+    }
+    if(m_robot.yHeld){
+     m_slideEncoderA.setPosition(0);
+    }
   }
 
   public void incIntakeSlideOffset() {

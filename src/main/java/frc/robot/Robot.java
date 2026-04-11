@@ -4,6 +4,13 @@
 
 package frc.robot;
 
+import java.nio.channels.Pipe;
+import java.util.Vector;
+
+import org.opencv.core.Mat;
+
+import choreo.Choreo;
+import choreo.auto.AutoFactory;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -13,6 +20,7 @@ import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -38,6 +46,7 @@ import frc.robot.commands.setClimbSpeed;
 import frc.robot.commands.setShooterSpeed;
 import frc.robot.commands.turnTowardsAprilPID;
 import frc.robot.commands.climberCommand.climbLevel;
+import frc.robot.commands.driveBackTillPositioned;
 import frc.robot.subsystems.intake;
 import frc.robot.subsystems.shooterSubsystem;
 import frc.robot.subsystems.LEDSubsystem;
@@ -76,7 +85,12 @@ public class Robot extends TimedRobot {
   //public static Pose3d getTargetPose3d_RobotSpace();  
   private boolean isHighGear = false;
   private boolean isFieldRelative = false;
+  public boolean yHeld = false;
+  public boolean shooterRunning = false;
   boolean isInRange = false;
+
+  public boolean hasUpdatedOdemetry = false;
+
   
   private Trigger isInRangeTrigger = new Trigger(()-> isInRange);
   
@@ -86,9 +100,17 @@ public class Robot extends TimedRobot {
   private RawFiducial[] fiducials;
   private Pose2d limeLightPose;
 
+  public double xPosition;
+  public double yPosition;
+  
+  public double xPastPosition;
+  public double yPastPosition;
+  public double currentAngle;
+  public double pastAngle;
+
   StructPublisher<Pose2d> publisher = NetworkTableInstance.getDefault().getStructTopic("MyPose", Pose2d.struct).publish();
 
-  private intake m_intake = new intake();
+  private intake m_intake = new intake(this);
   private shooterSubsystem m_ShooterSubsystem = new shooterSubsystem();
   private climbSubsystem m_climbSubsystem = new climbSubsystem();
 
@@ -135,7 +157,10 @@ public Robot() {
     m_AutoChooser.addOption("Center Score",     Constants.AutoConstants.kAutoProgram[2]);
     m_AutoChooser.addOption("Right Side Score", Constants.AutoConstants.kAutoProgram[3]);
     m_AutoChooser.addOption("Cen Score, Climb", Constants.AutoConstants.kAutoProgram[4]);
-    m_AutoChooser.addOption("RIght Side Shooter and Move", Constants.AutoConstants.kAutoProgram[5]);
+    m_AutoChooser.addOption("Right Side Shooter and Move", Constants.AutoConstants.kAutoProgram[5]); 
+    m_AutoChooser.addOption("Left Side Shooter and Move", Constants.AutoConstants.kAutoProgram[6]);
+    m_AutoChooser.addOption("Left Side Shooter and Move To Depo", Constants.AutoConstants.kAutoProgram[7]);
+    
     SmartDashboard.putData("Auto Choices", m_AutoChooser);  //Sync the Autochooser
 
 
@@ -143,6 +168,10 @@ public Robot() {
     startButton.onTrue(changeIsFieldRelative());
     
     xButton.onTrue(turnTowardAprilTag(Constants.AprilTagConstants.middleIds));
+    yButton.onTrue(new InstantCommand(() -> yButtonHeld(true)))
+      .onFalse(new InstantCommand(() -> yButtonHeld(false)));
+
+    aButton.onTrue(turnToAGlobalDirection(0));
     
     //yButton.onTrue(new setShooterSpeed(Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
     //        .onFalse(new setShooterSpeed(0, m_ShooterSubsystem));  //Just for testing
@@ -159,13 +188,13 @@ public Robot() {
     lbButton.onTrue(new extendIntake(true, m_intake))
                 .onFalse(new extendIntake(false, m_intake));
 
-     //extend
+    //  //extend
     redOne.onTrue(new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake));
-    redOne.onFalse(new intakeFuelCmd(0, m_intake));
-    //  yellowOne.onTrue(new setShooterSpeed(Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
-    //           .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
-    blueOne.onTrue(new setShooterSpeed(m_ShooterSubsystem, true, this)) 
-               .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
+      redOne.onFalse(new intakeFuelCmd(0, m_intake));
+     yellowOne.onTrue(new setShooterSpeed(Constants.c_defaultShooterSpeed, m_ShooterSubsystem, this, true))
+              .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem, this, false));
+    blueOne.onTrue(new setShooterSpeed(m_ShooterSubsystem, true, this, true)) 
+               .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem, this, false));
     greenOne.onTrue(new climberCommand(climbLevel.e_levelOne, m_climbSubsystem));  
     //blueOne.onTrue(new climberCommand(climbLevel.e_levelTwo, m_climbSubsystem));
     // blueOne.onTrue(new setClimbSpeed(0.6, m_climbSubsystem));
@@ -176,18 +205,25 @@ public Robot() {
             .onFalse(new intakeFuelCmd(0, m_intake));
 
           
-    blueTwo.onTrue(new setShooterSpeed(-Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
-              .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
+    blueTwo.onTrue(new setShooterSpeed(-Constants.c_defaultShooterSpeed, m_ShooterSubsystem, this, false))
+              .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem, this, false));
     greenTwo.onTrue(new climberCommand(climbLevel.e_floor, m_climbSubsystem));  
 
     whiteOne.onTrue(new retractAndIntake(true, false, m_intake, Constants.kSlideSpeedSlow, -Constants.c_defaultIntakeSpeed));
     whiteOne.onFalse(new retractAndIntake(false, false, m_intake, 0, 0));
+
+    whiteTwo.onTrue(new extendIntake(true, m_intake))
+                .onFalse(new extendIntake(false, m_intake));
+
+
     
     //whiteOne.onTrue(new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake));
     //whiteOne.onFalse(new intakeFuelCmd(0, m_intake));
 
     //blueTwo.onTrue(new climberCommand(climbLevel.e_levelOne, m_climbSubsystem));
     // blueTwo.onTrue(new setClimbSpeed(-0.6, m_climbSubsystem));
+
+    limeLightPose = new Pose2d();
   } 
 
 
@@ -201,8 +237,10 @@ public Robot() {
     SmartDashboard.putData("Auto Choices", m_AutoChooser);  //Sync the Autochooser
     SmartDashboard.putNumber("Match Time", DriverStation.getMatchTime());
     SmartDashboard.putData("Command Scheduler", CommandScheduler.getInstance());
+    
+    m_swerve.updateOdometry();
 
-    publisher.set(m_swerve.m_odometry.getPoseMeters());
+    publisher.set(m_swerve.m_odometry.getEstimatedPosition());
     
     //isInRangeTrigger.whileTrue(m_LedSubsystem.runInRange());
 
@@ -235,7 +273,7 @@ public Robot() {
   public void teleopInit() {
     // Do this in either robot or subsystem init
     SmartDashboard.putData("Field", m_field);
-    publisher.set(m_swerve.m_odometry.getPoseMeters());
+    publisher.set(m_swerve.m_odometry.getEstimatedPosition());
     
     // This makes sure that the autonomous stops running when teleop starts running. If you want the autonomous to
     // continue until interrupted by another command, remove this line or comment it out.
@@ -251,10 +289,9 @@ public Robot() {
     //driveWithJoystick(false);
     publishToDashboard();
     m_swerve.publishToDashboard();
-    m_swerve.updateOdometry();
 
     // Do this in either robot periodic or subsystem periodic
-    m_field.setRobotPose(m_swerve.m_odometry.getPoseMeters());
+    m_field.setRobotPose(m_swerve.m_odometry.getEstimatedPosition());
   }
 
   @Override
@@ -266,10 +303,9 @@ public Robot() {
   public void teleopPeriodic() {
     publishToDashboard();
 
-    m_swerve.updateOdometry();
 
     // Do this in either robot periodic or subsystem periodic
-    m_field.setRobotPose(m_swerve.m_odometry.getPoseMeters());
+    m_field.setRobotPose(m_swerve.m_odometry.getEstimatedPosition());
  
     //Set the max speed constant to use high (regular) or low speed based on isHighGear
     double l_MaxSpeed     = isHighGear?Constants.kMaxRobotSpeed       :Constants.kMaxRobotSpeedLowGear;
@@ -291,10 +327,88 @@ public Robot() {
         * l_MaxAngSpeed;
     SmartDashboard.putNumber("rot", rot);
 
-    m_swerve.drive(xSpeed, ySpeed, rot, isFieldRelative, getPeriod());   
+    m_swerve.drive(xSpeed, ySpeed, rot, isFieldRelative, getPeriod());  
+    
+    SmartDashboard.putNumber("distanceFromHubCenter", GetDistanceFromHubWithPosition());
 
+
+    // //Position Tracking
+    // xPosition = xPosition + (m_swerve.robotPose2d.getX() - xPastPosition);
+    // yPosition = yPosition + (m_swerve.robotPose2d.getY() - yPastPosition);
+    // AtemptToUpdateLocalPosition();
+    // xPastPosition = m_swerve.robotPose2d.getX();
+    // yPastPosition = m_swerve.robotPose2d.getY();
+    RawFiducial[] fids = LimelightHelpers.getRawFiducials("");
+    if(fids.length > 1){
+      Boolean safeToAdd = true;
+
+        for (RawFiducial rawFiducial : fids) {
+                if(rawFiducial.ambiguity > .2){
+                  safeToAdd = false;
+                }
+        };
+
+      if(safeToAdd){
+          limeLightPose = LimelightHelpers.getBotPose2d_wpiBlue("");
+        m_swerve.m_odometry.addVisionMeasurement(limeLightPose, Timer.getFPGATimestamp());
+        hasUpdatedOdemetry = true;
+      }
+      //m_swerve.resetOdometry(limeLightPose);
+    }
+    
+    xPosition = limeLightPose.getX();
+    yPosition = limeLightPose.getY();
+    currentAngle = limeLightPose.getRotation().getRadians();
+    SmartDashboard.putNumber("xPosition", xPosition);
+    SmartDashboard.putNumber("yPosition", yPosition);
+     SmartDashboard.putNumber("angle", currentAngle);
+    
+
+    // //AngleTracking
+    // currentAngle = currentAngle + (m_swerve.robotPose2d.getRotation().getRadians() - pastAngle);
+    // AtemptToUpdateLocalRotation();
+    // pastAngle = m_swerve.robotPose2d.getRotation().getRadians();
   }
 
+  
+  public double GetAngleChangeToHub(){
+    double distanceToHubBlue = Math.sqrt(Math.pow((xPosition-Constants.AprilTagConstants.blueHubLocation[0]),2) + Math.pow((yPosition-Constants.AprilTagConstants.blueHubLocation[1]),2));
+    double distanceToHubRed = Math.sqrt(Math.pow((xPosition-Constants.AprilTagConstants.redHubLocation[0]),2) + Math.pow((yPosition-Constants.AprilTagConstants.redHubLocation[1]),2));
+
+    double hubX = 0;
+    double hubY = 0;
+    if((distanceToHubBlue < distanceToHubRed)){
+      hubX = Constants.AprilTagConstants.blueHubLocation[0];
+      hubY = Constants.AprilTagConstants.blueHubLocation[1];
+    }else{
+      hubX = Constants.AprilTagConstants.redHubLocation[0];
+      hubY = Constants.AprilTagConstants.redHubLocation[1];
+    }
+    double offsetPointX = xPosition + 2;
+
+    double sideA = 2;
+    double sideB = Math.sqrt(Math.pow(xPosition - hubX, 2) + Math.pow(yPosition - hubY, 2));
+    double sideC = Math.sqrt(Math.pow(offsetPointX - hubX, 2) + Math.pow(yPosition - hubY, 2));
+
+    return Math.acos((Math.pow(sideA, 2) + Math.pow(sideB, 2) - Math.pow(sideC, 2))/(sideA * sideB * 2));
+
+  }
+  public double GetDistanceFromHubWithPosition(){
+     double distanceToHubBlue = Math.sqrt(Math.pow((xPosition-Constants.AprilTagConstants.blueHubLocation[0]),2) + Math.pow((yPosition-Constants.AprilTagConstants.blueHubLocation[1]),2));
+    double distanceToHubRed = Math.sqrt(Math.pow((xPosition-Constants.AprilTagConstants.redHubLocation[0]),2) + Math.pow((yPosition-Constants.AprilTagConstants.redHubLocation[1]),2));
+
+    double hubX = 0;
+    double hubY = 0;
+    if((distanceToHubBlue < distanceToHubRed)){
+      hubX = Constants.AprilTagConstants.blueHubLocation[0];
+      hubY = Constants.AprilTagConstants.blueHubLocation[1];
+    }else{
+      hubX = Constants.AprilTagConstants.redHubLocation[0];
+      hubY = Constants.AprilTagConstants.redHubLocation[1];
+    }
+
+    return Math.sqrt(Math.pow(xPosition - hubX, 2) + Math.pow(yPosition - hubY, 2));
+  }
   public double GetAngleChange(){
     //Getting Yaw
     double[] distanceAndId = getDistToTag(Constants.AprilTagConstants.middleIds);
@@ -343,10 +457,12 @@ public Robot() {
 
 
   double distanceFromTagToCenter = .5969;
- 
-    return Math.sqrt(Math.pow((distanceA* Math.cos(aprilTagYaw) + distanceFromTagToCenter), 2) + Math.pow((distanceA * Math.sin(aprilTagYaw)),2));
+  double distanceFinal = Math.sqrt(Math.pow((distanceA* Math.cos(aprilTagYaw) + distanceFromTagToCenter), 2) + Math.pow((distanceA * Math.sin(aprilTagYaw)),2));
+    return distanceFinal;
   }
-
+   public void yButtonHeld(boolean onOrOff){
+     yHeld = onOrOff;
+   }
   
   public void publishToDashboard()
   {
@@ -385,11 +501,11 @@ public Robot() {
 
     }
 
-    if(fiducials.length>0)
-    {
-      limeLightPose = LimelightHelpers.getBotPose2d_wpiBlue("");
-      setOdoCommand(limeLightPose);  
-    }
+    // if(fiducials.length>0)
+    // {
+    //   limeLightPose = LimelightHelpers.getBotPose2d_wpiBlue("");
+    //   setOdoCommand(limeLightPose);  
+    // }
     
         
     
@@ -488,7 +604,6 @@ public Robot() {
     return new turnTowardsAprilPID(tagIDs, getPeriod(), m_swerve, this);
   }
 
-
   /** AUTO Stuff below here **/
   public Command getAutonomousCommand() {
 
@@ -497,6 +612,10 @@ public Robot() {
     switch (m_autoSelected) {
       case "None":
         new InstantCommand(() -> setOdoCommand(Constants.AutoConstants.kStartingPoses[1]));
+        break;
+
+      case "ChoreoTestAuto":
+        new InstantCommand(() -> setOdoCommand(Constants.AutoConstants.kStartingPoses[4]));
         break;
 
       case "LeftSideScore":
@@ -511,9 +630,11 @@ public Robot() {
       case "CenterScore":
         temp = 
           Commands.sequence(
-           new InstantCommand(() -> setOdoCommand(Constants.AutoConstants.kStartingPoses[2])),
-            driveStraight(-1),
-            new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1),
+            new InstantCommand(() -> setOdoCommand(Constants.AutoConstants.kStartingPoses[2])),
+            driveStraight(-1.5),
+            //new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1),
+            driveSpinways(-Math.PI/12),
+            //new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1),
             scoreAuto(),
             new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1)
         );
@@ -532,9 +653,23 @@ public Robot() {
         temp =
           Commands.sequence(
             new InstantCommand(() -> setOdoCommand(Constants.AutoConstants.kStartingPoses[1])),         
-            scoreAuto()
+            scoreAuto(),
+            new WaitCommand(6),
+             moveAuto(false),
+           new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1)
         );
         break;
+        case "LeftSideScoreAndMove":
+          temp =
+            Commands.sequence(
+              new InstantCommand(() -> setOdoCommand(Constants.AutoConstants.kStartingPoses[1])),
+              scoreAuto(),
+              new WaitCommand(6),
+               moveAuto(true),
+           new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1)
+          
+          );
+          break;
 
       case "ShootCenterThenClimb":
         temp = Commands.sequence(
@@ -551,6 +686,18 @@ public Robot() {
 
         break;
 
+      case "TrenchAuto":
+          temp = Commands.sequence(
+            //also do not mind... also not suspicious... the ellipses do not mean anything...
+            new InstantCommand(() -> m_swerve.resetOdometry(new Pose2d(0, 0, new Rotation2d(0)))),
+            scoreAuto(),
+            new WaitCommand(6),
+            
+
+            new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1)
+          );
+        break;
+    
       default:
         break;
     }
@@ -566,15 +713,15 @@ public Robot() {
         break;
 
       case "LeftSideScore":
-        temp = shooter();
+        temp = shooter(3350);
         break;
 
       case "CenterScore":
-        temp = shooter();
+        temp = shooter(3300);
         break;
 
       case "RightSideScore":
-        temp =shooter();
+        temp =shooter(3350);
         break;
 
       case "ShootCenterThenClimb":
@@ -585,13 +732,11 @@ public Robot() {
         temp = null;
         break;
       
-        
       case "RightSideScoreAndMove":
-        temp = Commands.sequence(
-        shooter(), 
-        moveAuto(),
-         new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1)
-        );
+        temp = shooter(3350);
+        break;
+    case "LeftSideScoreAndMove":
+        temp = shooter(3350);
         break;
 
       default:
@@ -636,21 +781,21 @@ public Robot() {
     return Commands.sequence(
             //new setShooterSpeed(m_ShooterSubsystem, true, this),
             shootFuel(speed), 
-            new WaitCommand(.75),
+            new WaitCommand(9),
             stopShootFuel());
   }
 
   public Command shootByDistAuto(double shootTime) {
     return Commands.sequence(
-            new setShooterSpeed(m_ShooterSubsystem, true, this),
+            new setShooterSpeed(m_ShooterSubsystem, true, this, true),
             new WaitCommand(shootTime),
-            new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem)
+            new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem, this, false)
     );
   }
   
 
   public Command shootFuel(double speed) {
-    return new setShooterSpeed(speed, m_ShooterSubsystem);
+    return new setShooterSpeed(speed, m_ShooterSubsystem, this, true);
   }
 
   public Command climb(double speed) {
@@ -658,7 +803,7 @@ public Robot() {
   }
 
  public Command stopShootFuel() {
-    return new setShooterSpeed(0, m_ShooterSubsystem);
+    return new setShooterSpeed(0, m_ShooterSubsystem, this, false);
   }
 
   public Command changeIsFieldRelative() {
@@ -674,48 +819,168 @@ public Robot() {
    * Shoot - 1st round
    * Retract Hopper to push fuel further towards the hopper
    */
-  public Command shooter(){
+  public Command shooter(double speed){
     return Commands.sequence(
       new WaitCommand(.25),
-      shootBySpeedAuto(-2500), 
-      shootByDistAuto(6)
+      shootBySpeedAuto(speed)
     );
+
   }
   public Command scoreAuto() {   
     return Commands.sequence(
-      new extendIntake(true, m_intake),   //startExtention
-        printCmd("Extend"),    
-      new WaitCommand(.5),        //GiveTImeForExtention
-        printCmd("Elapse 0.5 Seconds"),   
-      new extendIntake(false, m_intake),   //stopExtention
-        printCmd("Disable Slide"), 
-      new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake), //LaunchBallsBackIntoHopper
+      extendIntakeForXSeconds(.75),
+      intakeForXSeconds(.75), //LaunchBallsBackIntoHopper
         printCmd("Start Intake"),
       new WaitCommand(2), //waitDorballsToBeShotOut
-      new retractAndIntake(true, false, m_intake, Constants.kSlideSpeedSlow, -Constants.c_defaultIntakeSpeed), //Bring Intake in
-        printCmd("Retract Slowly"),
-      new WaitCommand(.5),  //GiveTimeToComeIn
-        printCmd("retracting..."),
-      new retractAndIntake(false, false, m_intake, 0,0), //StopRetracting
-        printCmd("Stop Retract"),
-      new intakeFuelCmd(0, m_intake), //stopIntaking
-        printCmd("Stop Intake"));    
-  }
-
-  public Command moveAuto() {
-    return Commands.sequence(
-      new driveSpinwaysPID(-.75, 0.02, m_swerve),
-      new driveStraightPID(2.5, 0.02, m_swerve),
-       new extendIntake(true, m_intake),  
-        printCmd("Extend"),    
-      new WaitCommand(.5),
-      new extendIntake(false, m_intake)
-      // new driveSpinwaysPID(Math.PI/2, 0.02, m_swerve),
-      // new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake),
-      // new driveStraightPID(2.5, 0.02, m_swerve)
+      retractIntakeForXSeconds(1),
+      extendIntakeForXSeconds(.5)
     );
   }
 
+  public Command moveAuto(Boolean reverse) {
+    double turnValue = 0; //Can All be Changed to be relative (turn angle to 0 degrees)
+    double turnValue2 = 0;
+
+    double[] distanceAndId = getDistToTag(Constants.AprilTagConstants.middleIds);
+
+    if (distanceAndId[0] == 0){
+      if (reverse) {
+      turnValue = -.75;
+      } else {
+        turnValue = .75;
+      }
+    }else{
+      double distanceA = distanceAndId[0];
+      double distanceB = .3556;
+      double distanceC = 0; //logic is below
+      distanceC =  getDistToTag(new int[] { Constants.AprilTagConstants.IDpairs.get((int)distanceAndId[1]) })[0];
+      if (distanceC == 0){
+        if (reverse) {
+        turnValue = -.75;
+        } else {
+          turnValue = .75;
+        }
+      }
+      double angle = (distanceA*distanceA + distanceB* distanceB - distanceC*distanceC)/(2 * distanceA * distanceB);
+      angle = Math.toDegrees(Math.acos(angle));
+      if(turnValue == 0){
+        turnValue =  90 - (90 - MathUtil.angleModulus(angle));
+        turnValue = Math.toRadians(turnValue);
+      }
+    }
+    if (reverse) {
+        turnValue2 = Math.PI/2;
+      } else {
+        turnValue2 = -Math.PI/2;
+    }
+
+    return Commands.sequence(
+      new InstantCommand(() -> System.out.println("Starting Move Auto")),
+      new driveSpinwaysPID(turnValue, 0.02, m_swerve),
+      new driveStraightPID(2.5, 0.02, m_swerve),
+       extendIntakeForXSeconds(.5),
+      new driveSpinwaysPID(turnValue2, 0.02, m_swerve),
+      intakeWhilstDriving(3),
+      new driveSpinwaysPID(Math.PI, 0.02, m_swerve),
+      intakeWhilstDriving(3),
+      new driveSpinwaysPID(-turnValue2, 0.02, m_swerve),
+      new driveStraightPID(2.5, 0.02, m_swerve),
+      new driveSpinwaysPID(turnValue, 0.02, m_swerve),
+      shootBySpeedAuto(3500),
+      new InstantCommand(() -> System.out.println("Starting Move Auto"))
+    );
+  }
+
+  public Command moveToNeutralZone(Boolean reverse) {
+    // Will work on this at home, do not mind this, definitely a red herring, does not mean anything, not suspicious at all...
+    double turnValue = 0; //Can All be Changed to be relative (turn angle to 0 degrees)
+    double turnValue2 = 0;
+
+    double[] distanceAndId = getDistToTag(Constants.AprilTagConstants.middleIds);
+
+    if (distanceAndId[0] == 0){
+      if (reverse) {
+        turnValue = .75;
+      } else {
+        turnValue = -.75;
+      }
+    } else {
+      double distanceA = distanceAndId[0];
+      double distanceB = .3556;
+      double distanceC = 0; //logic is below
+      distanceC =  getDistToTag(new int[] { Constants.AprilTagConstants.IDpairs.get((int)distanceAndId[1]) })[0];
+      if (distanceC == 0){
+        if (reverse) {
+        turnValue = .75;
+        } else {
+          turnValue = -.75;
+        }
+      }
+      double angle = (distanceA*distanceA + distanceB* distanceB - distanceC*distanceC)/(2 * distanceA * distanceB);
+      angle = Math.toDegrees(Math.acos(angle));
+      if(turnValue == 0){
+        turnValue =  90 - (90 - MathUtil.angleModulus(angle));
+        turnValue = Math.toRadians(turnValue);
+      }
+    }
+    if (reverse) {
+        turnValue2 = -Math.PI/2;
+      } else {
+        turnValue2 = Math.PI/2;
+    }
+
+    return Commands.sequence(
+      new driveSpinwaysPID(turnValue, 0.02, m_swerve),
+      new driveStraightPID(-2.5, 0.02, m_swerve),
+       extendIntakeForXSeconds(.5),
+      new driveSpinwaysPID(turnValue2, 0.02, m_swerve),
+      intakeWhilstDriving(3)
+    );
+  }
+
+  public Command extendIntakeForXSeconds(double seconds){
+    return Commands.sequence(
+      new extendIntake(true, m_intake),
+      new InstantCommand(() -> System.out.println("Extending Intake Auto")),
+      new WaitCommand(seconds),
+      new extendIntake(false, m_intake)
+    );
+  }
+  public Command retractIntakeForXSeconds(double seconds){
+    return Commands.sequence(
+      new retractIntake(true, m_intake, Constants.kSlideSpeedSlow),
+      new WaitCommand(seconds),
+      new retractIntake(false, m_intake, 0)
+
+    );
+  }
+  public Command intakeForXSeconds(double seconds){
+    return Commands.sequence(
+       new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake),
+       new WaitCommand(seconds),
+      new intakeFuelCmd(0, m_intake)
+    );
+  }
+  public Command intakeWhilstDriving(double distance){
+    return Commands.sequence(
+      new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake),
+      new WaitCommand(.2),
+      new driveStraightPID(distance, 0.02, m_swerve),
+      new intakeFuelCmd(0, m_intake)
+    );
+  }
+  public Command turnToAGlobalDirection(double direction){
+    double tx =  direction - currentAngle;
+    return new driveSpinwaysPID(tx, .02, m_swerve); 
+  }
+  public Command driveBackTillLimeLightSeen(){
+    return new driveBackTillPositioned(-100, getPeriod(), m_swerve, this);
+  }
+  // public Command goToFieldPosition(double x, double y){
+    
+  //   driveStraight();
+  //   driveSideways();
+  // }
   public Command printCmd(String cmdName) {
     return new InstantCommand(() -> System.out.println(cmdName));
   }

@@ -6,14 +6,16 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.Drivetrain;
+import frc.robot.Robot;
 
-public class driveStraightPID extends Command {
+public class driveBackTillPositioned extends Command {
 private Drivetrain lDrivetrain;
 private double m_distance = 0;
 private double m_goalPos = 0;
 private double m_initialPos = 0;
 private double m_currentPos = 0;
 private double m_Period = 0;
+private Robot m_Robot;
 private final ProfiledPIDController m_PIDController;
 
 //driveBackTillPositioned
@@ -22,10 +24,11 @@ private final ProfiledPIDController m_PIDController;
    * @param meters
    * @param drivetrain
   */
-  public driveStraightPID(double p_Distance, double p_Period, Drivetrain driveTrain) {
+  public driveBackTillPositioned(double p_Distance, double p_Period, Drivetrain driveTrain, Robot robot) {
     m_distance = p_Distance;
     lDrivetrain = driveTrain;
     m_Period = p_Period;
+    m_Robot = robot;
     addRequirements(lDrivetrain);
 
       //Gains specific to controlling via 'drive' the robot to a position specified by the user
@@ -80,7 +83,7 @@ private final ProfiledPIDController m_PIDController;
   public boolean isFinished() {
     // Determines when to finish the command
     //return m_currDistance >= m_distance;
-    return m_PIDController.atGoal();
+    return m_Robot.hasUpdatedOdemetry;
    
   }
 }

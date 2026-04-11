@@ -28,7 +28,7 @@ public class shooterSubsystem extends SubsystemBase {
     private int shooterMotorBPort   = 24; 
     private int windmillMotorPort  = 35;
 
-    private static final double c_ShooterMaxSpeed = 5000;
+    private static final double c_ShooterMaxSpeed = 5675;
 
     private double m_ShooterMotorASpeed = 0;
     private double m_ShooterMotorBSpeed = 0;
@@ -53,7 +53,7 @@ public class shooterSubsystem extends SubsystemBase {
     private ProfiledPIDController m_ShooterAPID;
     
     private final SimpleMotorFeedforward m_shooterFeedForward = new SimpleMotorFeedforward(0.5,0);
-    private static final double Kp_shooterA = .0001; //.00025
+    private static final double Kp_shooterA = .0002; //.00025
     private static final double Ki_shooterA = 0;
     private static final double Kd_shooterA = 0;
     private static final double Kv_shooterA = 36000;
@@ -183,7 +183,7 @@ public class shooterSubsystem extends SubsystemBase {
     public double calcSpeed(double dist) {
         
         //setSpeed = dist;      //Change this for different distances (calibration logic only)
-        double setSpeed = -56.93*dist*dist + 1140.05*dist + 1116.609;
+        double setSpeed = -244.07*dist*dist + 430.622*dist - 3011.68;
 
         return setSpeed;
     }

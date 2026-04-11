@@ -31,7 +31,7 @@ private final ProfiledPIDController m_PIDController;
 
     m_PIDController =
       new ProfiledPIDController(
-        4, 
+        3, 
         0,
         0, 
         new TrapezoidProfile.Constraints(
@@ -43,7 +43,7 @@ private final ProfiledPIDController m_PIDController;
   @Override
   public void initialize() {
     //Run once, at the start of the command
-    m_initialPos = lDrivetrain.m_odometry.getPoseMeters().getY();
+    m_initialPos = lDrivetrain.m_odometry.getEstimatedPosition().getY();
     m_goalPos = m_initialPos + m_distance;
 
   }
@@ -51,7 +51,7 @@ private final ProfiledPIDController m_PIDController;
   @Override
   public void execute() {
     //run repeatedly, until isFinished() returns true
-    m_currentPos = lDrivetrain.m_odometry.getPoseMeters().getY();
+    m_currentPos = lDrivetrain.m_odometry.getEstimatedPosition().getY();
 
         lDrivetrain.drive(0,
       MathUtil.clamp(m_PIDController.calculate(m_currentPos, m_goalPos), 

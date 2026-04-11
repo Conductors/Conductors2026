@@ -47,7 +47,7 @@ public final class Constants {
     //public static final double kBR_TurnEncoderOffset = 0.892 - 0.125;   //Little TIRE
     public static final double kBR_TurnEncoderOffset = 0.658 - 0.125;   //Big TIRE
 
-    public static final double kSlideSpeed = 0.5;
+    public static final double kSlideSpeed = 0.35;
     public static final double kSlideSpeedSlow = 0.25;
     
 
@@ -73,12 +73,13 @@ public final class Constants {
             new TrapezoidProfile.Constraints(
                 kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
 
-        public static final String[] kAutoProgram = {"None", "LeftSideScore", "CenterScore", "RightSideScore", "ShootCenterThenClimb", "RightSideScoreAndMove",};
+        public static final String[] kAutoProgram = {"None", "LeftSideScore", "CenterScore", "RightSideScore", "ShootCenterThenClimb", "RightSideScoreAndMove", "LeftSideScoreAndMove", "LeftSideScoreAndDepo"};
         public static final Pose2d[] kStartingPoses = {
             new Pose2d(0,0, new Rotation2d(0)),   //Default
             new Pose2d(2,2, new Rotation2d(Math.PI/3)),   //Left Side Start
             new Pose2d(3,3, new Rotation2d(Math.PI/2)),   //Center Start
-            new Pose2d(4,4, new Rotation2d(2*Math.PI/3))   //Right Side Start          
+            new Pose2d(4,4, new Rotation2d(2*Math.PI/3)),   //Right Side Start   
+            new Pose2d(3.33, 7.97, new Rotation2d(-2.45))       
         };
       }
 
@@ -88,15 +89,20 @@ public final class Constants {
     public static final int[] frontTagsSide = {3, 13};     //red, blue alliance tags
     public static final int[] rightTags = {5, 15};     //red, blue alliance tags
     
-    public static final int[] middleIds = {10, 5, 4, 2};
+    public static final int[] middleIds = {10, 5, 4, 2, 25, 19, 21, 18};
 
-    public static final Map<Integer, Integer> IDpairs = Map.of(10, 9, 5, 8, 4, 3, 2, 11);
+    public static final Map<Integer, Integer> IDpairs = Map.of(10, 9, 5, 8, 4, 3, 2, 11, 25, 26, 19, 20, 21, 24, 18, 27);
+    public static final double[] middleAprilTagDistancesFromCorner = {-3.86, 4.01}; //xThenY
+    public static final double[] closeAprilTagDistancesFromCorner = {-3.40, 4.47}; //xThenY
+    public static final double[] farAprilTagDistancesFromCorner = {-4.6, 4.47}; //xThenY
+    public static final double[] blueHubLocation = {4.61,4.02};
+    public static final double[] redHubLocation = {11.9,4.02};
 
     public static final double[] shootMaxRange = {1.0, 3.0};      //max distance for shooter score
    
   }
 
-  public static final double c_defaultIntakeSpeed = .35;
+  public static final double c_defaultIntakeSpeed = .4;
   public static final double c_defaultShooterSpeed = 4000;   //tested at 70% speed
   public static final double c_shooterMotorStop = 0;
 
