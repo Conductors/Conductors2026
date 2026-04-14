@@ -16,6 +16,8 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.motorDiagnostics;
@@ -113,12 +115,20 @@ public class Drivetrain extends SubsystemBase {
    */
   public void drive(
       double xSpeed, double ySpeed, double rot, boolean fieldRelative, double periodSeconds) {
-      var swerveModuleStates =
+      
+      //Drive Field Relative must inverter for Red Alliance
+      var alliance = DriverStation.getAlliance();      
+      var invert = 1;
+      if (alliance.isPresent() && alliance.get() == Alliance.Red) {
+          invert = -1;
+      }
+      
+        var swerveModuleStates =
         m_kinematics.toSwerveModuleStates(
             ChassisSpeeds.discretize(
                 fieldRelative
                     ? ChassisSpeeds.fromFieldRelativeSpeeds(
-                        xSpeed, ySpeed, rot, m_odometry.getEstimatedPosition().getRotation())//new Rotation2d(m_gyro.getRotation2d().getRadians()))
+                        xSpeed*invert, ySpeed*invert, rot, m_odometry.getEstimatedPosition().getRotation())//new Rotation2d(m_gyro.getRotation2d().getRadians()))
                     : new ChassisSpeeds(xSpeed, ySpeed, rot),
                 periodSeconds));
                    
