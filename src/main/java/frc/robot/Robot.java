@@ -356,9 +356,9 @@ public Robot() {
       //m_swerve.resetOdometry(limeLightPose);
     }
     
-    xPosition = limeLightPose.getX();
-    yPosition = limeLightPose.getY();
-    currentAngle = limeLightPose.getRotation().getRadians();
+    xPosition = m_swerve.m_odometry.getEstimatedPosition().getX();
+    yPosition = m_swerve.m_odometry.getEstimatedPosition().getY();
+    currentAngle = m_swerve.m_odometry.getEstimatedPosition().getRotation().getRadians();
     SmartDashboard.putNumber("xPosition", xPosition);
     SmartDashboard.putNumber("yPosition", yPosition);
      SmartDashboard.putNumber("angle", currentAngle);
@@ -631,9 +631,9 @@ public Robot() {
         temp = 
           Commands.sequence(
             new InstantCommand(() -> setOdoCommand(Constants.AutoConstants.kStartingPoses[2])),
-            driveStraight(-1.5),
+            driveStraight(-1),
+            new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(.1),
             //new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1),
-            driveSpinways(-Math.PI/12),
             //new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1),
             scoreAuto(),
             new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1)
@@ -822,7 +822,7 @@ public Robot() {
   public Command shooter(double speed){
     return Commands.sequence(
       new WaitCommand(.25),
-      shootBySpeedAuto(speed)
+      shootByDistAuto(speed)
     );
 
   }

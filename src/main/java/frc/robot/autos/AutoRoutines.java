@@ -35,17 +35,17 @@ public class AutoRoutines {
 
         routine.active()
                 .onTrue(Commands.sequence(
-                        m_factory.resetOdometry(centerBack), new ScheduleCommand(untangle()), centerBackTraj.cmd()));
+                        m_factory.resetOdometry(centerBack), centerBackTraj.cmd()));
 
-        centerLeftSwerveTraj
-                .active()
-                .and(RobotContainer.getCoralScore()::hasCoral)
-                .onTrue(RobotContainer.getElevator().setStateAndGoToHeight(ElevatorHeight.L3));
+        // centerLeftSwerveTraj
+        //         .active()
+        //         .and(RobotContainer.getCoralScore()::hasCoral)
+        //         .onTrue(RobotContainer.getElevator().setStateAndGoToHeight(ElevatorHeight.L3));
         
 
         return routine;
     }
-
+/*
     public AutoRoutine oneCoralRightRoutine() {
         AutoRoutine routine = m_factory.newRoutine("Three Coral Right");
 
@@ -342,6 +342,7 @@ public class AutoRoutines {
     }
 
     /* non-trajectory auto commands */
+  /* 
     public Command aimLeft() {
         return Commands.sequence(
                 Commands.runOnce(() -> RobotStates.setAutol4(true)),
@@ -429,4 +430,5 @@ public class AutoRoutines {
     public Command nothingLeft() {
         return nothing(leftStart);
     }
+*/
 }

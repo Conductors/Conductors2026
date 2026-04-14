@@ -118,7 +118,7 @@ public class Drivetrain extends SubsystemBase {
             ChassisSpeeds.discretize(
                 fieldRelative
                     ? ChassisSpeeds.fromFieldRelativeSpeeds(
-                        xSpeed, ySpeed, rot, new Rotation2d(m_gyro.getRotation2d().getRadians()))
+                        xSpeed, ySpeed, rot, m_odometry.getEstimatedPosition().getRotation())//new Rotation2d(m_gyro.getRotation2d().getRadians()))
                     : new ChassisSpeeds(xSpeed, ySpeed, rot),
                 periodSeconds));
                    
@@ -227,13 +227,13 @@ public class Drivetrain extends SubsystemBase {
     SmartDashboard.putNumberArray("ActualStates", moduleActualStates);
     SmartDashboard.putNumberArray("OptDesiredStates", moduleOptDesStates);
     SmartDashboard.putNumber("FL adj Pos", m_frontLeft.getAdjustedAngle());
-    SmartDashboard.putNumber("FR adj Pos", m_frontRight.getAdjustedAngle());
+    SmartDashboard.putNumber("FR adj Pos",m_frontRight.getAdjustedAngle());
     SmartDashboard.putNumber("BL adj Pos", m_backLeft.getAdjustedAngle());
     SmartDashboard.putNumber("BR adj Pos", m_backRight.getAdjustedAngle());
     SmartDashboard.putNumber("FL abs Pos", m_frontLeft.getAbsAngle());
-    SmartDashboard.putNumber("FR abs Pos", m_frontRight.getAbsAngle());
-    SmartDashboard.putNumber("BL abs Pos", m_backLeft.getAbsAngle());
-    SmartDashboard.putNumber("BR abs Pos", m_backRight.getAbsAngle());
+    SmartDashboard.putNumber("FR abs Pos",m_frontRight.getAbsAngle());
+    SmartDashboard.putNumber("BL abs Pos",m_backLeft.getAbsAngle());
+    SmartDashboard.putNumber("BR abs Pos",m_backRight.getAbsAngle());
 
 
     SmartDashboard.putNumberArray("FL Actual V", m_frontLeft.getActualMotorVoltageData());
