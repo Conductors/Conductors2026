@@ -180,8 +180,8 @@ public Robot() {
     //        .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
 
 
-    povUp.onTrue(new InstantCommand(() -> m_ShooterSubsystem.incShooterASpeedOffset()));
-    povDown.onTrue(new InstantCommand(() -> m_ShooterSubsystem.decShooterASpeedOffset()));
+    povUp.onTrue(new InstantCommand(() -> m_ShooterSubsystem.decShooterASpeedOffset()));
+    povDown.onTrue(new InstantCommand(() -> m_ShooterSubsystem.incShooterASpeedOffset()));
     povLeft.onTrue(new InstantCommand(() -> m_intake.incIntakeSlideOffset()));
     povRight.onTrue(new InstantCommand(() -> m_intake.decIntakeSlideOffset()));
 
@@ -189,39 +189,31 @@ public Robot() {
                 .onFalse(new extendIntake(false, m_intake));
 
     //  //extend
-    redOne.onTrue(new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake));
-      redOne.onFalse(new intakeFuelCmd(0, m_intake));
-     yellowOne.onTrue(new setShooterSpeed(Constants.c_defaultShooterSpeed, m_ShooterSubsystem, this, true))
+    redOne.onTrue(new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake))
+          .onFalse(new intakeFuelCmd(0, m_intake));
+    yellowOne.onTrue(new setShooterSpeed(Constants.c_defaultShooterSpeed, m_ShooterSubsystem, this, true))
               .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem, this, false));
     blueOne.onTrue(new setShooterSpeed(m_ShooterSubsystem, true, this, true)) 
                .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem, this, false));
-    greenOne.onTrue(new climberCommand(climbLevel.e_levelOne, m_climbSubsystem));  
-    //blueOne.onTrue(new climberCommand(climbLevel.e_levelTwo, m_climbSubsystem));
-    // blueOne.onTrue(new setClimbSpeed(0.6, m_climbSubsystem));
+    greenOne.onTrue(new setShooterSpeed(Constants.c_maxShooterSpeed, m_ShooterSubsystem, this, true))
+              .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem, this, false));
    
-    rbButton.onTrue(new retractIntake(true, m_intake, Constants.kSlideSpeed));
-    rbButton.onFalse(new retractIntake(false, m_intake, Constants.kSlideSpeed));    //retract
+    rbButton.onTrue(new retractIntake(true, m_intake, Constants.kSlideSpeed))
+            .onFalse(new retractIntake(false, m_intake, Constants.kSlideSpeed));    //retract
+
+
     redTwo.onTrue(new intakeFuelCmd(Constants.c_defaultIntakeSpeed, m_intake))
             .onFalse(new intakeFuelCmd(0, m_intake));
 
           
     blueTwo.onTrue(new setShooterSpeed(-Constants.c_defaultShooterSpeed, m_ShooterSubsystem, this, false))
               .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem, this, false));
-    greenTwo.onTrue(new climberCommand(climbLevel.e_floor, m_climbSubsystem));  
-
+    
     whiteOne.onTrue(new retractAndIntake(true, false, m_intake, Constants.kSlideSpeedSlow, -Constants.c_defaultIntakeSpeed));
     whiteOne.onFalse(new retractAndIntake(false, false, m_intake, 0, 0));
 
     whiteTwo.onTrue(new extendIntake(true, m_intake))
                 .onFalse(new extendIntake(false, m_intake));
-
-
-    
-    //whiteOne.onTrue(new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake));
-    //whiteOne.onFalse(new intakeFuelCmd(0, m_intake));
-
-    //blueTwo.onTrue(new climberCommand(climbLevel.e_levelOne, m_climbSubsystem));
-    // blueTwo.onTrue(new setClimbSpeed(-0.6, m_climbSubsystem));
 
     limeLightPose = new Pose2d();
   } 
@@ -499,15 +491,7 @@ public Robot() {
           closestAprilTagID = id;
         }
 
-    }
-
-    // if(fiducials.length>0)
-    // {
-    //   limeLightPose = LimelightHelpers.getBotPose2d_wpiBlue("");
-    //   setOdoCommand(limeLightPose);  
-    // }
-    
-        
+    }  
     
     if( (distToCamera < Constants.AprilTagConstants.shootMaxRange[1]) && 
         (distToCamera > Constants.AprilTagConstants.shootMaxRange[0]) )   //just a test for the dist to hub 
@@ -633,8 +617,6 @@ public Robot() {
             new InstantCommand(() -> setOdoCommand(Constants.AutoConstants.kStartingPoses[2])),
             driveStraight(-1),
             new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(.1),
-            //new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1),
-            //new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1),
             scoreAuto(),
             new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1)
         );
