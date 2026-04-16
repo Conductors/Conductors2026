@@ -39,7 +39,7 @@ public final class Constants {
     public static final int kBL_TurnChannel  = 14;
     public static final int kBL_TurnEncoderChannel = 2;
     //public static final double kBL_TurnEncoderOffset = 0.217 + 0.125;  //Little TIRE
-    public static final double kBL_TurnEncoderOffset = 0.632 + 0.125;  //Big TIRE
+    public static final double kBL_TurnEncoderOffset = 0.796 + 0.125;  //Big TIRE
 
     public static final int kBR_DriveChannel = 11;
     public static final int kBR_TurnChannel  = 10;
