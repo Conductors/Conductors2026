@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -248,6 +249,7 @@ public Robot() {
   public void autonomousInit() {
     SmartDashboard.putData("Field", m_field);
 
+    m_swerve.resetOdometry(new Pose2d());
     m_autoSelected = m_AutoChooser.getSelected();
     m_autonomousCommand = getAutonomousCommand();
     m_autonomousCommand2 = getAutonomousCommand2();
@@ -382,7 +384,11 @@ public Robot() {
     double sideB = Math.sqrt(Math.pow(xPosition - hubX, 2) + Math.pow(yPosition - hubY, 2));
     double sideC = Math.sqrt(Math.pow(offsetPointX - hubX, 2) + Math.pow(yPosition - hubY, 2));
 
-    return Math.acos((Math.pow(sideA, 2) + Math.pow(sideB, 2) - Math.pow(sideC, 2))/(sideA * sideB * 2));
+    double negativeValue = 1;
+    if (yPosition > hubY){
+      negativeValue = -1;
+    }
+    return Math.acos((Math.pow(sideA, 2) + Math.pow(sideB, 2) - Math.pow(sideC, 2))/(sideA * sideB * 2)) * negativeValue;
 
   }
   public double GetDistanceFromHubWithPosition(){
@@ -615,7 +621,8 @@ public Robot() {
         temp = 
           Commands.sequence(
             new InstantCommand(() -> setOdoCommand(Constants.AutoConstants.kStartingPoses[2])),
-            driveStraight(-1),
+            driveStraight(-.75),
+            new WaitCommand(.5),
             new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(.1),
             scoreAuto(),
             new InstantCommand(() -> m_swerve.drive(0,0,0,false, getPeriod())).repeatedly().withTimeout(1)
@@ -695,15 +702,15 @@ public Robot() {
         break;
 
       case "LeftSideScore":
-        temp = shooter(3350);
+        temp = shooter(3550);
         break;
 
       case "CenterScore":
-        temp = shooter(3300);
+        temp = shooter(2560);
         break;
 
       case "RightSideScore":
-        temp =shooter(3350);
+        temp =shooter(3550);
         break;
 
       case "ShootCenterThenClimb":
@@ -804,18 +811,21 @@ public Robot() {
   public Command shooter(double speed){
     return Commands.sequence(
       new WaitCommand(.25),
-      shootByDistAuto(speed)
+      shootBySpeedAuto(speed)
     );
 
   }
   public Command scoreAuto() {   
     return Commands.sequence(
       extendIntakeForXSeconds(.75),
-      intakeForXSeconds(.75), //LaunchBallsBackIntoHopper
+      new intakeFuelCmd(-Constants.c_defaultIntakeSpeed, m_intake),
         printCmd("Start Intake"),
       new WaitCommand(2), //waitDorballsToBeShotOut
-      retractIntakeForXSeconds(1),
-      extendIntakeForXSeconds(.5)
+      retractIntakeForXSeconds(1.3),
+      extendIntakeForXSeconds(.6),
+      retractIntakeForXSeconds(1.3),
+      extendIntakeForXSeconds(.6),
+      new intakeFuelCmd(0, m_intake)
     );
   }
 

@@ -65,7 +65,7 @@ private Timer m_timer = new Timer();
     //System.out.print("InitPos = ");
     //System.out.println(m_initialPos);
      
-    m_goalPos = -angleToLook;
+    m_goalPos = angleToLook;
 
     System.out.print("GoalPos = ");
     System.out.println(MathUtil.angleModulus(m_goalPos));

@@ -50,8 +50,8 @@ public class intake extends SubsystemBase {
   private boolean m_slideFullyExtended = false;
 
   private final double c_slideStowPos = 5;
-  private final double c_slideOutPos = 33;
-  private final double c_slideShootOutPos = 25;
+  private final double c_slideOutPos = 97.1;
+  private final double c_slideShootOutPos = 40;
    
 
   public intake(Robot robot) {

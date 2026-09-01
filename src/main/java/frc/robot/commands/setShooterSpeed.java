@@ -13,7 +13,7 @@ public class setShooterSpeed extends Command {
   private boolean m_useDistance = false;
   private double m_distanceFromTag;
   private Timer m_delayTimer;
-  private double c_MotorBDelay = .5;
+  private double c_MotorBDelay = .75;
   private Robot robotRef;
 
 

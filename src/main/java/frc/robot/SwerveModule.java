@@ -74,6 +74,7 @@ public class SwerveModule {
     m_driveMotor = new SparkMax(driveMotorChannel, MotorType.kBrushless);
     SparkMaxConfig m_driveMotorConfig = new SparkMaxConfig();
     m_driveMotorConfig.inverted(true);
+    m_driveMotorConfig.smartCurrentLimit(50);
     m_driveMotorConfig.encoder
          .positionConversionFactor(2 * Math.PI * Constants.kWheelRadius / Constants.kGearRatio)  //2 pi * .05 * 8.1 / 42 / 1.7 matches ok
          .velocityConversionFactor(2 * Math.PI * Constants.kWheelRadius / Constants.kGearRatio / 60); // original 2pi * .0508 * 8.1 / 4096

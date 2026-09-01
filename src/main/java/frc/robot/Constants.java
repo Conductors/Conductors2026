@@ -27,25 +27,25 @@ public final class Constants {
     public static final int kFL_TurnChannel  = 16;
     public static final int kFL_TurnEncoderChannel = 3;
     //public static final double kFL_TurnEncoderOffset = 0.946 - 0.125;   //Little TIRE
-    public static final double kFL_TurnEncoderOffset = 0.249 - 0.125;   //Big TIRE
+    public static final double kFL_TurnEncoderOffset = 0.250 - 0.125;   //Big TIRE
 
     public static final int kFR_DriveChannel = 13;
     public static final int kFR_TurnChannel  = 12;
     public static final int kFR_TurnEncoderChannel = 1;
     //public static final double kFR_TurnEncoderOffset = 0.793 + 0.125; //Little TIRE
-    public static final double kFR_TurnEncoderOffset = 0.433 + 0.125; //Big TIRE
+    public static final double kFR_TurnEncoderOffset = 0.424 + 0.125; //Big TIRE
 
     public static final int kBL_DriveChannel = 15;
     public static final int kBL_TurnChannel  = 14;
     public static final int kBL_TurnEncoderChannel = 2;
     //public static final double kBL_TurnEncoderOffset = 0.217 + 0.125;  //Little TIRE
-    public static final double kBL_TurnEncoderOffset = 0.796 + 0.125;  //Big TIRE
+    public static final double kBL_TurnEncoderOffset = 0.715 + 0.125;  //Big TIRE
 
     public static final int kBR_DriveChannel = 11;
     public static final int kBR_TurnChannel  = 10;
     public static final int kBR_TurnEncoderChannel = 0;
     //public static final double kBR_TurnEncoderOffset = 0.892 - 0.125;   //Little TIRE
-    public static final double kBR_TurnEncoderOffset = 0.658 - 0.125;   //Big TIRE
+    public static final double kBR_TurnEncoderOffset = 0.682 - 0.125;   //Big TIRE
 
     public static final double kSlideSpeed = 1;
     public static final double kSlideSpeedSlow = 0.5;
