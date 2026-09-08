@@ -38,10 +38,10 @@ public class setShooterSpeed extends Command {
     addRequirements(m_ShooterSubsystem);
   }
 
-  public setShooterSpeed(shooterSubsystem ss, boolean useDistance, Robot robot, boolean isShooterRunning) {
-    m_speedCmd = 0;
+  public setShooterSpeed(shooterSubsystem ss, double speed, boolean useDistance, Robot robot, boolean isShooterRunning) {
+    m_speedCmd = speed;
     m_ShooterSubsystem = ss;
-    m_useDistance = true;
+    m_useDistance = useDistance;
     robotRef = robot;
     robot.shooterRunning = isShooterRunning;
     m_delayTimer = new Timer();

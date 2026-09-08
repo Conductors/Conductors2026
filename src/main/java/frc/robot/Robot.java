@@ -161,7 +161,8 @@ public Robot() {
     m_AutoChooser.addOption("Right Side Shooter and Move", Constants.AutoConstants.kAutoProgram[5]); 
     m_AutoChooser.addOption("Left Side Shooter and Move", Constants.AutoConstants.kAutoProgram[6]);
     m_AutoChooser.addOption("Left Side Shooter and Move To Depo", Constants.AutoConstants.kAutoProgram[7]);
-    
+    m_AutoChooser.addOption("Choreo Test Auto", Constants.AutoConstants.kAutoProgram[7]);
+
     SmartDashboard.putData("Auto Choices", m_AutoChooser);  //Sync the Autochooser
 
 
@@ -175,7 +176,7 @@ public Robot() {
     aButton.onTrue(turnToAGlobalDirection(0));
     
     //yButton.onTrue(new setShooterSpeed(Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
-    //        .onFalse(new setShooterSpeed(0, m_ShooterSubsystem));  //Just for testing
+      //      .onFalse(new setShooterSpeed(0, m_ShooterSubsystem));  //Just for testing
     
     //lbButton.onTrue(new setShooterSpeed(Constants.c_defaultShooterSpeed, m_ShooterSubsystem))
     //        .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem));
@@ -194,7 +195,7 @@ public Robot() {
           .onFalse(new intakeFuelCmd(0, m_intake));
     yellowOne.onTrue(new setShooterSpeed(Constants.c_defaultShooterSpeed, m_ShooterSubsystem, this, true))
               .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem, this, false));
-    blueOne.onTrue(new setShooterSpeed(m_ShooterSubsystem, true, this, true)) 
+    blueOne.onTrue(new setShooterSpeed(m_ShooterSubsystem, Constants.c_defaultShooterSpeed, false, this, true)) 
                .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem, this, false));
     greenOne.onTrue(new setShooterSpeed(Constants.c_maxShooterSpeed, m_ShooterSubsystem, this, true))
               .onFalse(new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem, this, false));
@@ -605,7 +606,10 @@ public Robot() {
         break;
 
       case "ChoreoTestAuto":
-        new InstantCommand(() -> setOdoCommand(Constants.AutoConstants.kStartingPoses[4]));
+        Commands.sequence(
+          new InstantCommand(() -> setOdoCommand(Constants.AutoConstants.kStartingPoses[4]))
+          //new Autoroutines(new Autof)
+          );
         break;
 
       case "LeftSideScore":
@@ -776,7 +780,7 @@ public Robot() {
 
   public Command shootByDistAuto(double shootTime) {
     return Commands.sequence(
-            new setShooterSpeed(m_ShooterSubsystem, true, this, true),
+            new setShooterSpeed(m_ShooterSubsystem, Constants.c_defaultShooterSpeed, true, this, true),
             new WaitCommand(shootTime),
             new setShooterSpeed(Constants.c_shooterMotorStop, m_ShooterSubsystem, this, false)
     );
